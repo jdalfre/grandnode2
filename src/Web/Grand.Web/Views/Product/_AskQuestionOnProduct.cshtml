@@ -1,34 +1,34 @@
 ﻿@model ProductAskQuestionSimpleModel
-<input value="@Model.Id" type="hidden" id="AskQuestionProductId" name="AskQuestionProductId"/>
+<input value="@Model.Id" type="hidden" id="AskQuestionProductId" name="AskQuestionProductId" />
 <div id="contact-us-product">
     <fieldset class="form-group">
-        <validation-provider tag="div" rules="required|email" name="AskQuestionEmail" v-slot="{ errors }">
+        <validation-provider tag="div" rules="required|email" name="AskQuestionEmail" v-slot="{ errors, classes }">
             <label asp-for="AskQuestionEmail" class="col-form-label">@Loc["Products.AskQuestion.Email"]:</label>
-            <input asp-for="AskQuestionEmail" v-model="askquestion.AskQuestionEmail" placeholder="@Loc["Products.AskQuestion.Email.Hint"]" class="form-control ask-question-email" />
+            <input asp-for="AskQuestionEmail" v-model="askquestion.AskQuestionEmail" placeholder="@Loc["Products.AskQuestion.Email.Hint"]" v-bind:class="[classes , 'form-control ask-question-email']" />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="AskQuestionEmail"></span>
         </validation-provider>
     </fieldset>
     <fieldset class="form-group">
-        <validation-provider tag="div" rules="required" name="AskQuestionFullName" v-slot="{ errors }">
+        <validation-provider tag="div" rules="required" name="AskQuestionFullName" v-slot="{ errors, classes }">
             <label asp-for="AskQuestionFullName" class="col-form-label">@Loc["Products.AskQuestion.FullName"]:</label>
-            <input asp-for="AskQuestionFullName" v-model="askquestion.AskQuestionFullName" placeholder="@Loc["Products.AskQuestion.FullName.Hint"]" class="form-control ask-question-fullname" />
+            <input asp-for="AskQuestionFullName" v-model="askquestion.AskQuestionFullName" placeholder="@Loc["Products.AskQuestion.FullName.Hint"]"  v-bind:class="[classes , 'form-control ask-question-fullname']" />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="AskQuestionFullName"></span>
         </validation-provider>
     </fieldset>
     <fieldset class="form-group">
-        <validation-provider tag="div" rules="required" name="AskQuestionPhone" v-slot="{ errors }">
+        <validation-provider tag="div" rules="required" name="Phone" v-slot="{ errors, classes }">
             <label asp-for="AskQuestionPhone" class="col-form-label">@Loc["Products.AskQuestion.Phone"]:</label>
-            <input asp-for="AskQuestionPhone" v-model="askquestion.AskQuestionPhone" placeholder="@Loc["Products.AskQuestion.Phone.Hint"]" class="form-control ask-question-phone" />
+            <input asp-for="AskQuestionPhone" v-model="askquestion.Phone" placeholder="@Loc["Products.AskQuestion.Phone.Hint"]" v-bind:class="[classes , 'form-control ask-question-phone']" />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="AskQuestionPhone"></span>
         </validation-provider>
     </fieldset>
     <fieldset class="form-group">
-        <validation-provider tag="div" rules="required" name="AskQuestionMessage" v-slot="{ errors }">
+        <validation-provider tag="div" rules="required" name="AskQuestionMessage" v-slot="{ errors, classes }">
             <label asp-for="AskQuestionMessage" class="col-form-label">@Loc["Products.AskQuestion.Message"]:</label>
-            <textarea asp-for="AskQuestionMessage" v-model="askquestion.AskQuestionMessage" placeholder="@Loc["Products.AskQuestion.Message.Hint"]" class="form-control ask-question-message" rows="4"></textarea>
+            <textarea asp-for="AskQuestionMessage" v-model="askquestion.AskQuestionMessage" placeholder="@Loc["Products.AskQuestion.Message.Hint"]"  v-bind:class="[classes , 'form-control ask-question-message']" rows="4"></textarea>
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="AskQuestionMessage"></span>
         </validation-provider>
@@ -56,7 +56,7 @@
 
     <div class="buttons generalMarginSupporter pt-1 pb-1">
         <input type="submit" name="send-email" class="btn btn-info send-ask-question-button"
-               value="@Loc["Products.AskQuestion.Button"]" data-form="sendcontactusform('@Url.RouteUrl("AskQuestionOnProduct")')"/>
+               value="@Loc["Products.AskQuestion.Button"]" data-form="sendcontactusform('@Url.RouteUrl("AskQuestionOnProduct")')" />
         <span class="sr-only">@Loc["Products.AskQuestion.Button"]</span>
     </div>
 

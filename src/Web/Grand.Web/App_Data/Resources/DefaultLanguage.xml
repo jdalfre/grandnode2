@@ -279,6 +279,9 @@
   <Resource Name="Account.DeleteAccount.Fields.Password.Required">
     <Value>Password field is required</Value>
   </Resource>
+  <Resource Name="Account.Delete.Success">
+    <Value>The account was successfully deleted.</Value>
+  </Resource>
   <Resource Name="Account.Documents">
     <Value>Documents</Value>
   </Resource>
@@ -489,11 +492,17 @@
   <Resource Name="Account.Login.Fields.Password">
     <Value>Password</Value>
   </Resource>
+  <Resource Name="Account.Login.Fields.Password.Required">
+    <Value>Please enter password</Value>
+  </Resource>
   <Resource Name="Account.Login.Fields.RememberMe">
     <Value>Remember me?</Value>
   </Resource>
   <Resource Name="Account.Login.Fields.UserName">
     <Value>Username</Value>
+  </Resource>
+  <Resource Name="Account.Login.Fields.UserName.Required">
+    <Value>Please enter user name</Value>
   </Resource>
   <Resource Name="Account.Login.ForgotPassword">
     <Value>Forgot password?</Value>
@@ -5073,6 +5082,18 @@
   <Resource Name="Admin.Configuration.Stores.BackToList">
     <Value>back to store list</Value>
   </Resource>
+  <Resource Name="Admin.Configuration.Stores.BankAccount.Fields.AccountNumber">
+    <Value>Account number</Value>
+  </Resource>
+  <Resource Name="Admin.Configuration.Stores.BankAccount.Fields.BankCode">
+    <Value>Bank Code</Value>
+  </Resource>
+  <Resource Name="Admin.Configuration.Stores.BankAccount.Fields.BankName">
+    <Value>Bank Name</Value>
+  </Resource>
+  <Resource Name="Admin.Configuration.Stores.BankAccount.Fields.SwiftCode">
+    <Value>BIC/SWIFT Code</Value>
+  </Resource>
   <Resource Name="Admin.Configuration.Stores.Deleted">
     <Value>The store has been deleted successfully.</Value>
   </Resource>
@@ -5111,6 +5132,9 @@
   </Resource>
   <Resource Name="Admin.Configuration.Stores.Fields.CompanyPhoneNumber">
     <Value>Company phone number</Value>
+  </Resource>
+  <Resource Name="Admin.Configuration.Stores.Fields.CompanyRegNo">
+    <Value>Company Reg. No.</Value>
   </Resource>
   <Resource Name="Admin.Configuration.Stores.Fields.CompanyVat">
     <Value>Company VAT</Value>
@@ -12011,6 +12035,9 @@
   </Resource>
   <Resource Name="Admin.Settings.Vendor.VendorSettings">
     <Value>Vendor settings</Value>
+  </Resource>
+  <Resource Name="Admin.Stores.BankInfo">
+    <Value>House bank</Value>
   </Resource>
   <Resource Name="Admin.Stores.Domains">
     <Value>Domains</Value>
