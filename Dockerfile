@@ -31,4 +31,8 @@ EXPOSE 80
 ENV ASPNETCORE_URLS http://+:80
 WORKDIR /app
 COPY --from=build-env /app/build/release .
-ENTRYPOINT ["dotnet", "Grand.Web.dll"]
+COPY --from=build-env /app/Tools/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["dotnet", "Grand.Web.dll"]
