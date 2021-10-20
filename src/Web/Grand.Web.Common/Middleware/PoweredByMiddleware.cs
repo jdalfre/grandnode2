@@ -37,11 +37,11 @@ namespace Grand.Web.Common.Middleware
     public class PoweredByMiddlewareOptions: IPoweredByMiddlewareOptions
     {
         const string PoweredByHeaderName = "X-Powered-By";
-        const string PoweredByHeaderValue = "GrandNode";
+        const string PoweredByHeaderValue = "livip";
 
         public string HeaderName => PoweredByHeaderName;
         public string HeaderValue { get; set; } = PoweredByHeaderValue;
 
-        public bool Enabled { get; set; } = true;
+        public bool Enabled { get; set; } = false;
     }
 }
