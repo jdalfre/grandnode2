@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ -f /mnt/data/gn_startup.sh ];
+if [ -f /mnt/data/startup.sh ];
 then
-    /mnt/data/gn_startup.sh;
+    /mnt/data/startup.sh;
 fi
 
 # exec the CMD from Dockerfile
