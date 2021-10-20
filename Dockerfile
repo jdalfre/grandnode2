@@ -34,5 +34,7 @@ COPY --from=build-env /app/build/release .
 COPY --from=build-env /app/Tools/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["dotnet", "Grand.Web.dll"]
