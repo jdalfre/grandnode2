@@ -1,13 +1,9 @@
-using Grand.Business.Common.Interfaces.Configuration;
+using Grand.Business.Core.Interfaces.Common.Configuration;
 using Grand.Domain.Configuration;
 using Grand.Domain.Data;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Common.Services.Configuration
 {
@@ -131,10 +127,10 @@ namespace Grand.Business.Common.Services.Configuration
         /// <returns>Setting value</returns>
         public virtual T GetSettingByKey<T>(string key, T defaultValue = default, string storeId = "")
         {
-            if (String.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
                 return defaultValue;
 
-            string keyCache = string.Format(CacheKey.SETTINGS_BY_KEY, key, storeId);
+            var keyCache = string.Format(CacheKey.SETTINGS_BY_KEY, key, storeId);
             return _cacheBase.Get<T>(keyCache, () =>
             {
                 var settings = GetSettingsByName(key);
@@ -142,10 +138,9 @@ namespace Grand.Business.Common.Services.Configuration
                 if (settings.Any())
                 {
                     var setting = settings.FirstOrDefault(x => x.StoreId == storeId);
-
-                    //load shared value?
-                    if (setting == null && !String.IsNullOrEmpty(storeId))
-                        setting = settings.FirstOrDefault(x => x.StoreId == "");
+                    //load default value?
+                    if (setting == null)
+                        setting = settings.FirstOrDefault(x => string.IsNullOrEmpty(x.StoreId));
 
                     if (setting != null)
                         return JsonSerializer.Deserialize<T>(setting.Metadata);
@@ -225,8 +220,8 @@ namespace Grand.Business.Common.Services.Configuration
                 {
                     var setting = settings.FirstOrDefault(x => x.StoreId == storeId);
 
-                    if (setting == null && !String.IsNullOrEmpty(storeId))
-                        setting = settings.FirstOrDefault(x => x.StoreId == "");
+                    if (setting == null && !string.IsNullOrEmpty(storeId))
+                        setting = settings.FirstOrDefault(x => string.IsNullOrEmpty(x.StoreId));
 
                     return JsonSerializer.Deserialize(setting.Metadata, type) as ISettings;
                 }

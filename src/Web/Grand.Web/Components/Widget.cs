@@ -1,4 +1,4 @@
-﻿using Grand.Business.Cms.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Cms;
 using Grand.Domain.Customers;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
@@ -6,9 +6,6 @@ using Grand.Web.Common.Components;
 using Grand.Web.Events.Cache;
 using Grand.Web.Models.Cms;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.ViewComponents
 {
@@ -46,7 +43,7 @@ namespace Grand.Web.ViewComponents
 
                     model.Add(widgetModel);
                 }
-                return await Task.FromResult(model);
+                return model;
             });
 
             if (!cachedModel.Any())

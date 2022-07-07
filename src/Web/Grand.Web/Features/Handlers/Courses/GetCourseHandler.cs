@@ -1,13 +1,10 @@
 ﻿using Grand.Domain.Media;
-using Grand.Business.Marketing.Interfaces.Courses;
-using Grand.Business.Storage.Interfaces;
+using Grand.Business.Core.Interfaces.Marketing.Courses;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Web.Extensions;
 using Grand.Web.Features.Models.Courses;
 using Grand.Web.Models.Course;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 namespace Grand.Web.Features.Handlers.Courses
 {
     public class GetCourseHandler : IRequestHandler<GetCourse, CourseModel>

@@ -1,4 +1,4 @@
-﻿using Grand.Business.Messages.DotLiquidDrops;
+﻿using Grand.Business.Core.Utilities.Messages.DotLiquidDrops;
 using Grand.Domain.Catalog;
 using Grand.Domain.Localization;
 using Grand.Domain.Stores;
@@ -6,7 +6,6 @@ using Grand.Domain.Vendors;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Messages.Tests.Services
 {

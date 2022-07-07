@@ -1,17 +1,11 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Marketing.Extensions;
-using Grand.Business.Marketing.Interfaces.Contacts;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Web.Common.Security.Captcha;
 using Grand.Web.Commands.Models.Common;
 using Grand.Web.Models.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Common
 {

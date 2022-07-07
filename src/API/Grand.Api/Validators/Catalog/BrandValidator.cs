@@ -1,10 +1,9 @@
 ﻿using FluentValidation;
 using Grand.Api.DTOs.Catalog;
-using Grand.Business.Catalog.Interfaces.Brands;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Storage.Interfaces;
+using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Infrastructure.Validators;
-using System.Collections.Generic;
 
 namespace Grand.Api.Validators.Catalog
 {

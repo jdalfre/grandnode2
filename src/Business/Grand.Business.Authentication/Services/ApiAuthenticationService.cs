@@ -1,15 +1,12 @@
-﻿using Grand.Business.Authentication.Interfaces;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Authentication;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Customers;
 using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Authentication.Services
 {
@@ -82,7 +79,7 @@ namespace Grand.Business.Authentication.Services
         private async Task<Customer> ApiCustomer()
         {
             Customer customer = null;
-            var authResult = await _httpContextAccessor.HttpContext.AuthenticateAsync(GrandWebApiConfig.Scheme);
+            var authResult = await _httpContextAccessor.HttpContext.AuthenticateAsync(FrontendAPIConfig.Scheme);
             if (!authResult.Succeeded)
             {
                 _httpContextAccessor.HttpContext.Response.StatusCode = 400;

@@ -1,10 +1,6 @@
-﻿using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Domain.Customers;
+﻿using Grand.Business.Core.Commands.Checkout.Orders;
 using Grand.Domain.Orders;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Commands.Handlers.Orders
 {

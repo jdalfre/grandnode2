@@ -1,4 +1,4 @@
-﻿using Grand.Business.Customers.Queries.Models;
+﻿using Grand.Business.Core.Queries.Customers;
 using Grand.Domain.Data;
 using Grand.Infrastructure;
 using MediatR;
@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Filters
 {

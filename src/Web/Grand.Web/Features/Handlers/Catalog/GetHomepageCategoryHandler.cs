@@ -1,6 +1,6 @@
-﻿using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Customers;
 using Grand.Domain.Media;
 using Grand.Infrastructure.Caching;
@@ -10,10 +10,7 @@ using Grand.Web.Events.Cache;
 using Grand.Web.Models.Catalog;
 using Grand.Web.Models.Media;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Grand.Business.Common.Extensions;
+using Grand.Business.Core.Extensions;
 
 namespace Grand.Web.Features.Handlers.Catalog
 {
@@ -59,6 +56,8 @@ namespace Grand.Web.Features.Handlers.Catalog
                         Id = x.PictureId,
                         FullSizeImageUrl = await _pictureService.GetPictureUrl(x.PictureId),
                         ImageUrl = await _pictureService.GetPictureUrl(x.PictureId, _mediaSettings.CategoryThumbPictureSize),
+                        Style = picture?.Style,
+                        ExtraField = picture?.ExtraField
                     };
                     //"title" attribute
                     catModel.PictureModel.Title = (picture != null && !string.IsNullOrEmpty(picture.GetTranslation(x => x.TitleAttribute, request.Language.Id))) ?

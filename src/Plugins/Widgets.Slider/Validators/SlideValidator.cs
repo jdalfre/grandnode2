@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Infrastructure.Validators;
-using System.Collections.Generic;
 using Widgets.Slider.Domain;
 using Widgets.Slider.Models;
 

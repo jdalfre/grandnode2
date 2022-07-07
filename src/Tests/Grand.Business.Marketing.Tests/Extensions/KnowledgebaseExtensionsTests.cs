@@ -1,8 +1,6 @@
-﻿using Grand.Business.Marketing.Extensions;
+﻿using Grand.Business.Core.Extensions;
 using Grand.Domain.Knowledgebase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Grand.Business.Marketing.Tests.Extensions
 {

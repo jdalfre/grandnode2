@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Events.Models;
+﻿using Grand.Business.Core.Events.Catalog;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Events.Handlers
 {

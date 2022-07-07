@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Queries.Models;
+﻿using Grand.Business.Core.Queries.Catalog;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Queries.Handlers
 {

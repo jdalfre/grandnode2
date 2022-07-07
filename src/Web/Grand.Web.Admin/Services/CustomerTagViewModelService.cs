@@ -1,21 +1,20 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Customers;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
+using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Admin.Models.Customers;
 using Grand.Web.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -28,6 +27,8 @@ namespace Grand.Web.Admin.Services
         private readonly IVendorService _vendorService;
         private readonly ICustomerTagService _customerTagService;
         private readonly IDateTimeService _dateTimeService;
+        private readonly IWorkContext _workContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CustomerTagViewModelService(
            ITranslationService translationService,
@@ -36,7 +37,9 @@ namespace Grand.Web.Admin.Services
            IStoreService storeService,
            IVendorService vendorService,
            ICustomerTagService customerTagService,
-           IDateTimeService dateTimeService)
+           IDateTimeService dateTimeService,
+           IWorkContext workContext,
+           IHttpContextAccessor httpContextAccessor)
         {
             _translationService = translationService;
             _customerActivityService = customerActivityService;
@@ -45,6 +48,8 @@ namespace Grand.Web.Admin.Services
             _vendorService = vendorService;
             _customerTagService = customerTagService;
             _dateTimeService = dateTimeService;
+            _workContext = workContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public virtual CustomerModel PrepareCustomerModelForList(Customer customer)
@@ -67,7 +72,9 @@ namespace Grand.Web.Admin.Services
             await _customerTagService.InsertCustomerTag(customertag);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewCustomerTag", customertag.Id, _translationService.GetResource("ActivityLog.AddNewCustomerTag"), customertag.Name);
+            _ = _customerActivityService.InsertActivity("AddNewCustomerTag", customertag.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewCustomerTag"), customertag.Name);
             return customertag;
         }
         public virtual async Task<CustomerTag> UpdateCustomerTagModel(CustomerTag customerTag, CustomerTagModel model)
@@ -78,13 +85,17 @@ namespace Grand.Web.Admin.Services
             await _customerTagService.UpdateCustomerTag(customerTag);
 
             //activity log
-            await _customerActivityService.InsertActivity("EditCustomerTage", customerTag.Id, _translationService.GetResource("ActivityLog.EditCustomerTag"), customerTag.Name);
+            _ = _customerActivityService.InsertActivity("EditCustomerTage", customerTag.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditCustomerTag"), customerTag.Name);
             return customerTag;
         }
         public virtual async Task DeleteCustomerTag(CustomerTag customerTag)
         {
             //activity log
-            await _customerActivityService.InsertActivity("DeleteCustomerTag", customerTag.Id, _translationService.GetResource("ActivityLog.DeleteCustomerTag"), customerTag.Name);
+            _ = _customerActivityService.InsertActivity("DeleteCustomerTag", customerTag.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteCustomerTag"), customerTag.Name);
             await _customerTagService.DeleteCustomerTag(customerTag);
         }
         public virtual async Task<CustomerTagProductModel.AddProductModel> PrepareProductModel(string customerTagId)

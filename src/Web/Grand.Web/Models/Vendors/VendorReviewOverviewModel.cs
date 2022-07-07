@@ -1,6 +1,5 @@
 ﻿using Grand.Infrastructure.ModelBinding;
 using Grand.Infrastructure.Models;
-using System.Collections.Generic;
 
 namespace Grand.Web.Models.Vendors
 {
@@ -30,6 +29,7 @@ namespace Grand.Web.Models.Vendors
 
         public IList<VendorReviewModel> Items { get; set; }
         public AddVendorReviewModel AddVendorReview { get; set; }
+        public VendorReviewOverviewModel VendorReviewOverview { get; set; }
     }
 
     public partial class VendorReviewModel : BaseEntityModel
@@ -75,5 +75,6 @@ namespace Grand.Web.Models.Vendors
         public bool CanCurrentCustomerLeaveReview { get; set; }
         public bool SuccessfullyAdded { get; set; }
         public string Result { get; set; }
+        public bool NotAllowAnonymousUsersToReviewVendor { get; set; }
     }
 }

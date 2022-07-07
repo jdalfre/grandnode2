@@ -1,8 +1,8 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Grand.Domain.Blogs;
@@ -12,10 +12,6 @@ using Grand.Web.Events.Cache;
 using Grand.Web.Models.Blogs;
 using Grand.Web.Models.Media;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Blogs
 {
@@ -85,7 +81,9 @@ namespace Grand.Web.Features.Handlers.Blogs
                             FullSizeImageUrl = await _pictureService.GetPictureUrl(post.PictureId),
                             ImageUrl = await _pictureService.GetPictureUrl(post.PictureId, _mediaSettings.BlogThumbPictureSize),
                             Title = string.Format(_translationService.GetResource("Media.Blog.ImageLinkTitleFormat"), post.Title),
-                            AlternateText = string.Format(_translationService.GetResource("Media.Blog.ImageAlternateTextFormat"), post.Title)
+                            AlternateText = string.Format(_translationService.GetResource("Media.Blog.ImageAlternateTextFormat"), post.Title),
+                            Style = picture?.Style,
+                            ExtraField = picture?.ExtraField
                         };
                         //"title" attribute
                         pictureModel.Title = (picture != null && !string.IsNullOrEmpty(picture.GetTranslation(x => x.TitleAttribute, _workContext.WorkingLanguage.Id))) ?

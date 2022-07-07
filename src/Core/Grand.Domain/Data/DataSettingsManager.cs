@@ -1,8 +1,5 @@
 ﻿using Grand.SharedKernel.Extensions;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Grand.Domain.Data
 {
@@ -42,6 +39,13 @@ namespace Grand.Domain.Data
             return _dataSettings;
         }
 
+        public static DataSettings LoadDataSettings(DataSettings dataSettings)
+        {
+            _dataSettings = dataSettings;
+            return _dataSettings;
+        }
+
+
         /// <summary>
         /// Returns a value indicating whether database is already installed
         /// </summary>
@@ -73,7 +77,7 @@ namespace Grand.Domain.Data
                 using FileStream fs = File.Create(filePath);
             }
             var data = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(filePath, data);
+            await File.WriteAllTextAsync(filePath, data);            
         }
     }
 }

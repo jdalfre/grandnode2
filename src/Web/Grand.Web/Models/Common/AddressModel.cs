@@ -1,7 +1,6 @@
 ﻿using Grand.Infrastructure.ModelBinding;
 using Grand.Infrastructure.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Grand.Web.Models.Common
@@ -15,8 +14,14 @@ namespace Grand.Web.Models.Common
             CustomAddressAttributes = new List<AddressAttributeModel>();
         }
 
+        public bool NameEnabled { get; set; }
+
+        [GrandResourceDisplayName("Address.Fields.AddressName")]
+        public string Name { get; set; }
+
         [GrandResourceDisplayName("Address.Fields.FirstName")]
         public string FirstName { get; set; }
+
         [GrandResourceDisplayName("Address.Fields.LastName")]
         public string LastName { get; set; }
         [DataType(DataType.EmailAddress)]
@@ -93,5 +98,8 @@ namespace Grand.Web.Models.Common
         [GrandResourceDisplayName("Address.Fields.AddressType")]
         public int AddressTypeId { get; set; }
 
+        public bool HideAddressType { get; set; }
+
+        public bool DisallowUsersToChangeEmail { get; set; }
     }
 }

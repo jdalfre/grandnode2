@@ -6,17 +6,17 @@
         /// <summary>
         /// Gets the major version
         /// </summary>
-        public const string MajorVersion = "1";
+        public const string MajorVersion = "2";
 
         /// <summary>
         /// Gets the minor version
         /// </summary>
-        public const string MinorVersion = "0";
+        public const string MinorVersion = "1";
 
         /// <summary>
         /// Gets the patch version
         /// </summary>
-        public const string PatchVersion = "1-develop";
+        public const string PatchVersion = "0-develop";
 
         /// <summary>
         /// Gets the full version

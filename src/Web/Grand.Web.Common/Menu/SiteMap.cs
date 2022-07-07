@@ -1,9 +1,6 @@
-﻿using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.System.Interfaces.Admin;
+﻿using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Interfaces.System.Admin;
 using Grand.Domain.Admin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Menu
 {
@@ -53,7 +50,7 @@ namespace Grand.Web.Common.Menu
         {
             await PopulateNode(siteMap, siteMapNode);
 
-            foreach (var item in siteMapNode.ChildNodes)
+            foreach (var item in siteMapNode.ChildNodes.OrderBy(x=>x.DisplayOrder))
             {
                 var mainsite = new SiteMapNode();
                 siteMap.ChildNodes.Add(mainsite);

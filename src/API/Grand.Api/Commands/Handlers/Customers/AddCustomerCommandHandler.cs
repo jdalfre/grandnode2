@@ -1,16 +1,13 @@
 ﻿using Grand.Api.Commands.Models.Customers;
 using Grand.Api.DTOs.Customers;
 using Grand.Api.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Customers.Interfaces;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Customers;
+using Grand.Infrastructure;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Handlers.Customers
 {
@@ -21,19 +18,22 @@ namespace Grand.Api.Commands.Handlers.Customers
         private readonly ICustomerActivityService _customerActivityService;
         private readonly ITranslationService _translationService;
         private readonly IUserFieldService _userFieldsService;
+        private readonly IWorkContext _workContext;
 
         public AddCustomerCommandHandler(
             ICustomerService customerService,
             IGroupService groupService,
             ICustomerActivityService customerActivityService,
             ITranslationService translationService,
-            IUserFieldService userFieldsService)
+            IUserFieldService userFieldsService,
+            IWorkContext workContext)
         {
             _customerService = customerService;
             _groupService = groupService;
             _customerActivityService = customerActivityService;
             _translationService = translationService;
             _userFieldsService = userFieldsService;
+            _workContext = workContext;
         }
 
         public async Task<CustomerDto> Handle(AddCustomerCommand request, CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ namespace Grand.Api.Commands.Handlers.Customers
             await SaveCustomerGroups(request.Model, customer);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewCustomer", customer.Id, _translationService.GetResource("ActivityLog.AddNewCustomer"), customer.Id);
+            _ = _customerActivityService.InsertActivity("AddNewCustomer", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.AddNewCustomer"), customer.Id);
             return customer.ToModel();
         }
 

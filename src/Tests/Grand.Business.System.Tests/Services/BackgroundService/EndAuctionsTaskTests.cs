@@ -1,9 +1,8 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Services.Orders;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Business.System.Services.BackgroundServices.ScheduleTasks;
 using Grand.Domain;
 using Grand.Domain.Catalog;
@@ -13,9 +12,7 @@ using Grand.Domain.Localization;
 using Grand.Domain.Orders;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Grand.Business.Core.Utilities.Checkout;
 
 namespace Grand.Business.System.Tests.Services.BackgroundService
 {
@@ -66,7 +63,7 @@ namespace Grand.Business.System.Tests.Services.BackgroundService
                 .ReturnsAsync((new List<string>() { "warning" }, null));
             await _task.Execute();
 
-            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>()), Times.Once);
+            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>(), null, null, null), Times.Once);
         }
 
         [TestMethod]
@@ -80,7 +77,7 @@ namespace Grand.Business.System.Tests.Services.BackgroundService
                 .ReturnsAsync((new List<string>(), null));
             await _task.Execute();
 
-            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>()), Times.Never);
+            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>(), null, null, null), Times.Never);
             _auctionMock.Verify(c => c.UpdateBid(It.IsAny<Bid>()), Times.Once);
             _auctionMock.Verify(c => c.UpdateAuctionEnded(It.IsAny<Product>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
             _messageProviderMock.Verify(c => c.SendAuctionEndedStoreOwnerMessage(It.IsAny<Product>(), It.IsAny<string>(), It.IsAny<Bid>()), Times.Once);

@@ -1,5 +1,5 @@
-﻿using Grand.Business.Marketing.Commands.Models;
-using Grand.Business.Marketing.Interfaces.Customers;
+﻿using Grand.Business.Core.Commands.Marketing;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Domain.Catalog;
@@ -7,10 +7,6 @@ using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Services.Customers
 {

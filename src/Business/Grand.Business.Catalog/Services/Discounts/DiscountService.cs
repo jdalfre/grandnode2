@@ -1,6 +1,6 @@
-﻿using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Utilities;
-using Grand.Business.Common.Interfaces.Localization;
+﻿using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Utilities.Catalog;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Domain;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
@@ -14,10 +14,6 @@ using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Discounts
 {

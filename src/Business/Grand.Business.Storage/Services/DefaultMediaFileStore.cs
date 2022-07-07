@@ -1,10 +1,7 @@
 ﻿//Source https://github.com/OrchardCMS/OrchardCore/tree/dev/src/OrchardCore
 
-using Grand.Business.Storage.Interfaces;
+using Grand.Business.Core.Interfaces.Storage;
 using Microsoft.Extensions.FileProviders.Physical;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Storage.Services
 {

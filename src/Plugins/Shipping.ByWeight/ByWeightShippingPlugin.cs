@@ -1,10 +1,8 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Configuration;
-using Grand.Business.Common.Interfaces.Localization;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Configuration;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Domain.Orders;
 using Grand.Infrastructure.Plugins;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Shipping.ByWeight
 {

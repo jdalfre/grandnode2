@@ -1,8 +1,9 @@
-﻿using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Documents;
+﻿using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Documents;
+using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Documents;
@@ -10,8 +11,6 @@ using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -24,13 +23,15 @@ namespace Grand.Web.Admin.Controllers
         private readonly ITranslationService _translationService;
         private readonly ICustomerService _customerService;
         private readonly ICustomerActivityService _customerActivityService;
+        private readonly IWorkContext _workContext;
 
         public DocumentController(IDocumentViewModelService documentViewModelService,
             IDocumentService documentService,
             IDocumentTypeService documentTypeService,
             ITranslationService translationService,
             ICustomerService customerService,
-            ICustomerActivityService customerActivityService)
+            ICustomerActivityService customerActivityService,
+            IWorkContext workContext)
         {
             _documentViewModelService = documentViewModelService;
             _documentService = documentService;
@@ -38,6 +39,7 @@ namespace Grand.Web.Admin.Controllers
             _translationService = translationService;
             _customerService = customerService;
             _customerActivityService = customerActivityService;
+            _workContext = workContext;
         }
 
         public IActionResult Index() => RedirectToAction("List");
@@ -49,6 +51,12 @@ namespace Grand.Web.Admin.Controllers
         {
             if (!string.IsNullOrEmpty(model.CustomerId))
                 model.SearchEmail = (await _customerService.GetCustomerById(model.CustomerId))?.Email;
+
+            if (model.Reference > 0 && string.IsNullOrEmpty(model.ObjectId))
+                return Json(new DataSourceResult {
+                    Data = Enumerable.Empty<DocumentModel>(),
+                    Total = 0
+                });
 
             var documents = await _documentViewModelService.PrepareDocumentListModel(model, command.Page, command.PageSize);
             var gridModel = new DataSourceResult {
@@ -164,7 +172,9 @@ namespace Grand.Web.Admin.Controllers
                 await _documentTypeService.Insert(documenttype);
 
                 //activity log
-                await _customerActivityService.InsertActivity("AddNewDocumentType", documenttype.Id, _translationService.GetResource("ActivityLog.AddNewDocumentType"), documenttype.Name);
+                _ = _customerActivityService.InsertActivity("AddNewDocumentType", documenttype.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.AddNewDocumentType"), documenttype.Name);
 
                 Success(_translationService.GetResource("Admin.Documents.Type.Added"));
                 return continueEditing ? RedirectToAction("EditType", new { id = documenttype.Id }) : RedirectToAction("Types");
@@ -198,7 +208,9 @@ namespace Grand.Web.Admin.Controllers
                 await _documentTypeService.Update(documentType);
 
                 //activity log
-                await _customerActivityService.InsertActivity("EditDocumentType", documentType.Id, _translationService.GetResource("ActivityLog.EditDocumentType"), documentType.Name);
+                _ = _customerActivityService.InsertActivity("EditDocumentType", documentType.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.EditDocumentType"), documentType.Name);
 
                 Success(_translationService.GetResource("Admin.Documents.Type.Updated"));
                 return continueEditing ? RedirectToAction("EditType", new { id = documentType.Id }) : RedirectToAction("Types");
@@ -220,7 +232,9 @@ namespace Grand.Web.Admin.Controllers
                 await _documentTypeService.Delete(documentType);
 
                 //activity log
-                await _customerActivityService.InsertActivity("DeleteDocumentType", documentType.Id, _translationService.GetResource("ActivityLog.DeleteDocumentType"), documentType.Name);
+                _ = _customerActivityService.InsertActivity("DeleteDocumentType", documentType.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.DeleteDocumentType"), documentType.Name);
 
                 Success(_translationService.GetResource("Admin.Documents.Type.Deleted"));
                 return RedirectToAction("Types");

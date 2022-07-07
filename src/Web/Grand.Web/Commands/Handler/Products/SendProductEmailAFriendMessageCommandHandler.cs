@@ -1,9 +1,7 @@
-﻿using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Messages;
 using Grand.SharedKernel.Extensions;
 using Grand.Web.Commands.Models.Products;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Products
 {

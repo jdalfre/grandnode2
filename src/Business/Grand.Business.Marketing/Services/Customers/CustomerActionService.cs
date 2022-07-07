@@ -1,4 +1,4 @@
-﻿using Grand.Business.Marketing.Interfaces.Customers;
+﻿using Grand.Business.Core.Interfaces.Marketing.Customers;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
@@ -6,10 +6,6 @@ using Grand.Domain;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Services.Customers
 {

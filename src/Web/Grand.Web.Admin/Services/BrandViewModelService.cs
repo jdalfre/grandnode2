@@ -1,12 +1,12 @@
-﻿using Grand.Business.Catalog.Interfaces.Brands;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Seo;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Seo;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Discounts;
 using Grand.Domain.Seo;
@@ -15,11 +15,8 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -38,6 +35,7 @@ namespace Grand.Web.Admin.Services
         private readonly IDateTimeService _dateTimeService;
         private readonly ILanguageService _languageService;
         private readonly IWorkContext _workContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly SeoSettings _seoSettings;
 
         #endregion
@@ -56,6 +54,7 @@ namespace Grand.Web.Admin.Services
             IDateTimeService dateTimeService,
             ILanguageService languageService,
             IWorkContext workContext,
+            IHttpContextAccessor httpContextAccessor,
             SeoSettings seoSettings)
         {
             _brandLayoutService = brandLayoutService;
@@ -69,6 +68,7 @@ namespace Grand.Web.Admin.Services
             _dateTimeService = dateTimeService;
             _languageService = languageService;
             _workContext = workContext;
+            _httpContextAccessor = httpContextAccessor;
             _seoSettings = seoSettings;
         }
 
@@ -141,7 +141,9 @@ namespace Grand.Web.Admin.Services
             await _pictureService.UpdatePictureSeoNames(brand.PictureId, brand.Name);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewBrand", brand.Id, _translationService.GetResource("ActivityLog.AddNewBrand"), brand.Name);
+            _ = _customerActivityService.InsertActivity("AddNewBrand", brand.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewBrand"), brand.Name);
             return brand;
         }
 
@@ -186,7 +188,9 @@ namespace Grand.Web.Admin.Services
             await _pictureService.UpdatePictureSeoNames(brand.PictureId, brand.Name);
 
             //activity log
-            await _customerActivityService.InsertActivity("EditBrand", brand.Id, _translationService.GetResource("ActivityLog.EditBrand"), brand.Name);
+            _ = _customerActivityService.InsertActivity("EditBrand", brand.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditBrand"), brand.Name);
             return brand;
         }
 
@@ -194,7 +198,9 @@ namespace Grand.Web.Admin.Services
         {
             await _brandService.DeleteBrand(brand);
             //activity log
-            await _customerActivityService.InsertActivity("DeleteBrand", brand.Id, _translationService.GetResource("ActivityLog.DeleteBrand"), brand.Name);
+            _ = _customerActivityService.InsertActivity("DeleteBrand", brand.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteBrand"), brand.Name);
         }
 
         public virtual async Task<(IEnumerable<BrandModel.ActivityLogModel> activityLogModels, int totalCount)> PrepareActivityLogModel(string brandId, int pageIndex, int pageSize)

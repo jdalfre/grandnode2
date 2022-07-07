@@ -1,12 +1,12 @@
-﻿using Grand.Business.Marketing.Interfaces.Banners;
-using Grand.Business.Marketing.Interfaces.Campaigns;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Marketing.Interfaces.Courses;
-using Grand.Business.Marketing.Interfaces.Customers;
-using Grand.Business.Marketing.Interfaces.Documents;
-using Grand.Business.Marketing.Interfaces.Knowledgebase;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.Marketing.Interfaces.PushNotifications;
+﻿using Grand.Business.Core.Interfaces.Marketing.Banners;
+using Grand.Business.Core.Interfaces.Marketing.Campaigns;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Marketing.Courses;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Documents;
+using Grand.Business.Core.Interfaces.Marketing.Knowledgebase;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.Marketing.PushNotifications;
 using Grand.Business.Marketing.Services.Banners;
 using Grand.Business.Marketing.Services.Campaigns;
 using Grand.Business.Marketing.Services.Contacts;
@@ -55,13 +55,15 @@ namespace Grand.Business.Marketing.Startup
             serviceCollection.AddScoped<IBannerService, BannerService>();
             serviceCollection.AddScoped<IPopupService, PopupService>();
             serviceCollection.AddScoped<IInteractiveFormService, InteractiveFormService>();
-            serviceCollection.AddScoped<IPushNotificationsService, PushNotificationsService>();
             serviceCollection.AddScoped<IContactAttributeParser, ContactAttributeParser>();
             serviceCollection.AddScoped<IContactAttributeService, ContactAttributeService>();
             serviceCollection.AddScoped<IContactUsService, ContactUsService>();
             serviceCollection.AddScoped<INewsLetterSubscriptionService, NewsLetterSubscriptionService>();
             serviceCollection.AddScoped<INewsletterCategoryService, NewsletterCategoryService>();
             serviceCollection.AddScoped<ICampaignService, CampaignService>();
+
+            serviceCollection.AddHttpClient<IPushNotificationsService, PushNotificationsService>();
+
         }
         private void RegisterCoursesService(IServiceCollection serviceCollection)
         {

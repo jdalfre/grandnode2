@@ -1,7 +1,5 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Localization;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Localization;
 
 namespace Widgets.FacebookPixel
 {

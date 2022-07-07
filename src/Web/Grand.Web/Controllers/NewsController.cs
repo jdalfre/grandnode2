@@ -1,10 +1,10 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.News;
 using Grand.Infrastructure;
 using Grand.Web.Commands.Models.News;
@@ -15,8 +15,6 @@ using Grand.Web.Features.Models.News;
 using Grand.Web.Models.News;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Controllers
 {
@@ -97,6 +95,7 @@ namespace Grand.Web.Controllers
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         [ValidateCaptcha]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> NewsCommentAdd(string newsItemId,
             NewsItemModel model, bool captchaValid,
             [FromServices] IGroupService groupService
@@ -128,7 +127,9 @@ namespace Grand.Web.Controllers
                 await _mediator.Publish(new NewsCommentEvent(newsItem, model.AddNewComment));
 
                 //activity log
-                await _customerActivityService.InsertActivity("PublicStore.AddNewsComment", newsItem.Id, _translationService.GetResource("ActivityLog.PublicStore.AddNewsComment"));
+                _ = _customerActivityService.InsertActivity("PublicStore.AddNewsComment", newsItem.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.PublicStore.AddNewsComment"));
 
                 //The text boxes should be cleared after a comment has been posted
                 TempData["Grand.news.addcomment.result"] = _translationService.GetResource("News.Comments.SuccessfullyAdded");

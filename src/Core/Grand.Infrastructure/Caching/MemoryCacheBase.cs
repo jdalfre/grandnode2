@@ -3,10 +3,7 @@ using Grand.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Grand.Infrastructure.Caching
 {
@@ -21,7 +18,9 @@ namespace Grand.Infrastructure.Caching
         private readonly IMediator _mediator;
 
         private bool _disposed;
-        private static CancellationTokenSource _resetCacheToken = new CancellationTokenSource();
+        private static CancellationTokenSource _resetCacheToken = new();
+
+        protected readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheEntries = new();
 
         #endregion
 
@@ -37,35 +36,66 @@ namespace Grand.Infrastructure.Caching
 
         #region Methods
 
-        public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire)
+        public virtual Task<T> GetAsync<T>(string key, Func<Task<T>> acquire)
         {
-            return await _cache.GetOrCreateAsync(key, entry =>
-            {
-                entry.SetOptions(GetMemoryCacheEntryOptions(CommonHelper.CacheTimeMinutes));
-                return acquire();
-            });
+            return GetAsync(key, acquire, CommonHelper.CacheTimeMinutes);
         }
 
-        public T Get<T>(string key, Func<T> acquire)
+        public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime)
         {
-            return _cache.GetOrCreate(key, entry =>
+            T cacheEntry;
+            if (!_cache.TryGetValue(key, out cacheEntry))
             {
-                entry.SetOptions(GetMemoryCacheEntryOptions(CommonHelper.CacheTimeMinutes));
-                return acquire();
-            });
-        }
-        public virtual Task SetAsync(string key, object data, int cacheTime)
-        {
-            if (data != null)
-            {
-                _cache.Set(key, data, GetMemoryCacheEntryOptions(cacheTime));
+                SemaphoreSlim slock = _cacheEntries.GetOrAdd(key, k => new SemaphoreSlim(1, 1));
+                await slock.WaitAsync();
+                try
+                {
+                    if (!_cache.TryGetValue(key, out cacheEntry))
+                    {
+                        cacheEntry = await acquire();
+                        _cache.Set(key, cacheEntry, GetMemoryCacheEntryOptions(cacheTime));
+                    }
+                }
+                finally
+                {
+                    slock.Release();
+                }
             }
-            return Task.CompletedTask;
+            return cacheEntry;
         }
+
+        public virtual T Get<T>(string key, Func<T> acquire)
+        {
+            return Get<T>(key, acquire, CommonHelper.CacheTimeMinutes);
+        }
+
+        public virtual T Get<T>(string key, Func<T> acquire, int cacheTime)
+        {
+            T cacheEntry;
+            if (!_cache.TryGetValue(key, out cacheEntry))
+            {
+                SemaphoreSlim slock = _cacheEntries.GetOrAdd(key, k => new SemaphoreSlim(1, 1));
+                slock.Wait();
+                try
+                {
+                    if (!_cache.TryGetValue(key, out cacheEntry))
+                    {
+                        cacheEntry = acquire();
+                        _cache.Set(key, cacheEntry, GetMemoryCacheEntryOptions(cacheTime));
+                    }
+                }
+                finally
+                {
+                    slock.Release();
+                }
+            }
+            return cacheEntry;
+        }        
 
         public virtual Task RemoveAsync(string key, bool publisher = true)
         {
             _cache.Remove(key);
+
             if (publisher)
                 _mediator.Publish(new EntityCacheEvent(key, CacheEvent.RemoveKey));
 
@@ -74,10 +104,10 @@ namespace Grand.Infrastructure.Caching
 
         public virtual Task RemoveByPrefix(string prefix, bool publisher = true)
         {
-            var keysToRemove = _cache.GetKeys<string>().Where(x => x.ToString().StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
-            foreach (var key in keysToRemove)
+            var entriesToRemove = _cacheEntries.Where(x => x.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+            foreach (var cacheEntrie in entriesToRemove)
             {
-                _cache.Remove(key);
+                _cache.Remove(cacheEntrie.Key);
             }
 
             if (publisher)
@@ -88,6 +118,10 @@ namespace Grand.Infrastructure.Caching
 
         public virtual Task Clear(bool publisher = true)
         {
+            //clear keys
+            foreach (var cacheEntry in _cacheEntries.Keys.ToList())
+                _cache.Remove(cacheEntry);
+
             //cancel
             _resetCacheToken.Cancel();
             //dispose
@@ -136,11 +170,9 @@ namespace Grand.Infrastructure.Caching
 
         private void PostEvictionCallback(object key, object value, EvictionReason reason, object state)
         {
-            if (reason == EvictionReason.Replaced)
-                return;
-
-            if (reason == EvictionReason.TokenExpired)
-                return;
+            if (reason != EvictionReason.Replaced)
+                _cacheEntries.TryRemove(key.ToString(), out var _);
+            
         }
 
         #endregion

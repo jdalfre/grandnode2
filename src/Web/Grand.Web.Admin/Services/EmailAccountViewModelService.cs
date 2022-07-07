@@ -1,9 +1,8 @@
-﻿using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Messages;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Messages;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {

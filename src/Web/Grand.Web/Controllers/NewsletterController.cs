@@ -1,14 +1,13 @@
 ﻿using Grand.Web.Commands.Models.Newsletter;
 using Grand.Web.Common.Controllers;
+using Grand.Web.Common.Filters;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Controllers
 {
+    [DenySystemAccount]
     public partial class NewsletterController : BasePublicController
     {
         private readonly IMediator _mediator;

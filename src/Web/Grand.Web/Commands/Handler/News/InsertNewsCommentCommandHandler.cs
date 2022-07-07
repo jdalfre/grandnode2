@@ -1,14 +1,11 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Localization;
 using Grand.Domain.News;
 using Grand.Web.Commands.Models.News;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.News
 {

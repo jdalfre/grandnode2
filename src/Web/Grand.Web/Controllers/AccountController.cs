@@ -1,14 +1,14 @@
-﻿using Grand.Business.Authentication.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Addresses;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Customers.Events;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Customers.Queries.Models;
-using Grand.Business.Customers.Utilities;
-using Grand.Business.Messages.Interfaces;
-using Grand.Business.System.Interfaces.ExportImport;
+﻿using Grand.Business.Core.Interfaces.Authentication;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Addresses;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Events.Customers;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Queries.Customers;
+using Grand.Business.Core.Utilities.Customers;
+using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.System.ExportImport;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Stores;
@@ -24,12 +24,10 @@ using Grand.Web.Models.Customer;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Controllers
 {
+    [DenySystemAccount]
     public partial class AccountController : BasePublicController
     {
         #region Fields
@@ -764,6 +762,8 @@ namespace Grand.Web.Controllers
                     Model = null,
                     Address = null,
                     ExcludeProperties = false,
+                    PrePopulateWithCustomerFields = true,
+                    Customer = _workContext.CurrentCustomer,
                     LoadCountries = () => countries
                 })
             };
@@ -774,6 +774,7 @@ namespace Grand.Web.Controllers
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public virtual async Task<IActionResult> AddressAdd(CustomerAddressEditModel model, IFormCollection form,
+            [FromServices] AddressSettings addressSettings,
             [FromServices] IAddressAttributeParser addressAttributeParser)
         {
             if (!await _groupService.IsRegistered(_workContext.CurrentCustomer))
@@ -791,7 +792,7 @@ namespace Grand.Web.Controllers
 
             if (ModelState.IsValid && ModelState.ErrorCount == 0)
             {
-                var address = model.Address.ToEntity();
+                var address = model.Address.ToEntity(_workContext.CurrentCustomer, addressSettings);
                 address.Attributes = customAttributes;
                 address.CreatedOnUtc = DateTime.UtcNow;
                 customer.Addresses.Add(address);
@@ -808,6 +809,7 @@ namespace Grand.Web.Controllers
                 Model = model.Address,
                 Address = null,
                 ExcludeProperties = true,
+                Customer = _workContext.CurrentCustomer,
                 LoadCountries = () => countries
             });
 
@@ -834,6 +836,7 @@ namespace Grand.Web.Controllers
                 Model = model.Address,
                 Address = address,
                 ExcludeProperties = false,
+                Customer = _workContext.CurrentCustomer,
                 LoadCountries = () => countries
             });
 
@@ -843,6 +846,7 @@ namespace Grand.Web.Controllers
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public virtual async Task<IActionResult> AddressEdit(CustomerAddressEditModel model, string addressId, IFormCollection form,
+            [FromServices] AddressSettings addressSettings,
             [FromServices] IAddressAttributeParser addressAttributeParser)
         {
             if (!await _groupService.IsRegistered(_workContext.CurrentCustomer))
@@ -865,8 +869,8 @@ namespace Grand.Web.Controllers
 
             if (ModelState.IsValid && ModelState.ErrorCount == 0)
             {
-                address = model.Address.ToEntity(address);
-                address.Attributes = customAttributes;
+                address = model.Address.ToEntity(address, _workContext.CurrentCustomer, addressSettings);
+                address.Attributes = customAttributes;                
                 await _customerService.UpdateAddress(address, customer.Id);
 
                 if (customer.BillingAddress?.Id == address.Id)
@@ -884,6 +888,7 @@ namespace Grand.Web.Controllers
                 Model = model.Address,
                 Address = address,
                 ExcludeProperties = true,
+                Customer = _workContext.CurrentCustomer,
                 LoadCountries = () => countries
             });
 
@@ -1001,7 +1006,7 @@ namespace Grand.Web.Controllers
                     case CustomerLoginResults.Successful:
                         {
                             //delete account 
-                            await _mediator.Send(new DeleteAccountCommand() { Customer = _workContext.CurrentCustomer, Store = _workContext.CurrentStore });
+                            await _mediator.Send(new DeleteAccountCommand() { Customer = _workContext.CurrentCustomer, Store = _workContext.CurrentStore, IpAddress = HttpContext.Connection?.RemoteIpAddress?.ToString(), });
 
                             //standard logout 
                             await _authenticationService.SignOut();

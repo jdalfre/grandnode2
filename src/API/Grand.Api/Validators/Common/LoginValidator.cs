@@ -1,11 +1,10 @@
 ﻿using FluentValidation;
 using Grand.Api.Models.Common;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Customers.Interfaces;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Customers;
 using Grand.Infrastructure.Configuration;
 using Grand.Infrastructure.Validators;
-using System.Collections.Generic;
 
 namespace Grand.Api.Validators.Common
 {
@@ -13,7 +12,7 @@ namespace Grand.Api.Validators.Common
     {
         public LoginValidator(
             IEnumerable<IValidatorConsumer<LoginModel>> validators,
-            ApiConfig apiConfig, ICustomerService customerService, IUserApiService userApiService, IEncryptionService encryptionService)
+            BackendAPIConfig apiConfig, ICustomerService customerService, IUserApiService userApiService, IEncryptionService encryptionService)
             : base(validators)
         {
             if (!apiConfig.Enabled)
@@ -46,9 +45,6 @@ namespace Grand.Api.Validators.Common
                 }
                 return false;
             }).WithMessage("Customer not exist");
-            EncryptionService = encryptionService;
         }
-
-        public IEncryptionService EncryptionService { get; }
     }
 }

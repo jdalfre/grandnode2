@@ -1,25 +1,22 @@
-﻿var vm = new Vue({
+﻿
+var vm = new Vue({
     el: '#app',
-    data: function() {
+    data: function () {
         return {
             show: false,
-            fluid: false,
             hover: false,
             darkMode: false,
             active: false,
             NextDropdownVisible: false,
             value: 5,
-            searchitems: null,
-            searchcategories: null,
-            searchbrands: null,
-            searchblog: null,
-            searchproducts: null,
             flycartfirstload: true,
             PopupAddToCartVueModal: null,
             PopupQuickViewVueModal: null,
-            PopupProductReviewVueModal: null,
             index: null,
             RelatedProducts: null,
+            compareproducts: null,
+            compareProductsQty: 0,
+            loader: false,
         }
     },
     props: {
@@ -29,13 +26,16 @@
         flywish: null,
         wishlistitems: null,
         wishindicator: undefined,
-        UpdatedShoppingCartItemId: null
+        UpdatedShoppingCartItemId: null,        
     },
     mounted: function () {
         if (localStorage.fluid == "true") this.fluid = "fluid";
         if (localStorage.fluid == "fluid") this.fluid = "fluid";
         if (localStorage.fluid == "") this.fluid = "false";
         if (localStorage.darkMode == "true") this.darkMode = true;
+        this.wishindicator = parseInt(this.$refs.wishlistQty.innerText);
+        this.updateCompareProductsQty();
+        this.backToTop();
     },
     watch: {
         fluid: function (newName) {
@@ -49,9 +49,186 @@
         }
     },
     methods: {
-        updateFly: function () {
+        backToTop() {
+            if (!document.querySelector('.up-btn')) {
+                const upBtn = document.createElement('div');
+                const upBtnContent = document.createElement('div');
+
+                upBtn.classList.add('up-btn', 'up-btn__hide');
+
+                function showBtn(num) {
+                    if (document.documentElement.scrollTop >= num) {
+                        upBtn.classList.remove('up-btn__hide');
+                    } else {
+                        upBtn.classList.add('up-btn__hide');
+                    }
+                }
+
+                document.body.append(upBtn);
+                upBtn.append(upBtnContent)
+                window.addEventListener('scroll', () => {
+                    showBtn(400);
+                });
+
+                upBtn.addEventListener('click', () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+                });
+            }
+        },
+        newsletterBox(AllowToUnsubscribe, url) {
+            let subscribe;
+            if (AllowToUnsubscribe) {
+                subscribe = this.$refs.newsletterSubscribe.checked
+            } else {
+                subscribe = true
+            }
+            var postData = {
+                subscribe: subscribe,
+                email: document.getElementById("newsletter-email").value
+            };
             axios({
-                baseURL: '/Component/Index?Name=SidebarShoppingCart',
+                url: url,
+                params: postData,
+                method: 'post',
+            }).then(function (response) {
+                let result = response.data.Result;
+                let resultCategory = response.data.ResultCategory;
+                let showCategories = response.data.Showcategories;
+                let success = response.data.Success;
+                let variant;
+
+                if (success) {
+                    variant = "info";
+                } else {
+                    variant = "danger";
+                }
+
+                vm.$bvToast.toast(result, {
+                    variant: variant,
+                    autoHideDelay: 3500,
+                    solid: true,
+                });
+
+                if (showCategories) {
+                    vm.displayPopup(resultCategory, 'ModalNewsletterCategory');
+                }
+
+            });
+        },
+        newsletterSubscribeCategory(url) {
+            let form = document.getElementById('newsletter-category-method-form');
+            let data = new FormData(form);
+            axios({
+                url: url,
+                method: 'post',
+                data: data,
+            }).then(function (response) {
+                if (!response.data.Success) {
+                    alert(response.data.Message);
+                }
+            }).catch(function (error) {
+                alert(error);
+            })
+        },
+        getPrivacyPreference(href) {
+            axios({
+                url: href,
+                method: 'get',
+            }).then(function (response) {
+                vm.displayPopup(response.data.html, 'ModalPrivacyPreference')
+            }).catch(function (error) {
+                alert(error);
+            });
+        },
+        savePrivacyPreference(href) {
+            let form = document.getElementById('frmPrivacyPreference');
+            let data = new FormData(form);
+            axios({
+                url: href,
+                method: 'post',
+                data: data
+            }).catch(function (error) {
+                alert(error);
+            });
+        },
+        displayPopup(html, el) {
+            new Vue({
+                el: '#' + el,
+                data: {
+                    template: null,
+                },
+                render: function (createElement) {
+                    if (!this.template) {
+                        return createElement('b-overlay', {
+                            attrs: {
+                                show: 'true'
+                            }
+                        });
+                    } else {
+                        return this.template();
+                    }
+                },
+                methods: {
+                    showModal: function () {
+                        this.$refs[el].show()
+                    }
+                },
+                mounted: function () {
+                    var self = this;
+                    self.template = Vue.compile(html).render;
+                    this.darkMode = vm.darkMode;
+                },
+                updated: function () {
+                    this.showModal();
+                }
+            });
+        },
+        displayBarNotification(message, url, messagetype, timeout) {
+            var variant;
+
+            if (messagetype == 'error') {
+                variant = "danger";
+            } else {
+                variant = "info";
+            }
+
+            this.$bvToast.toast(message, {
+                title: messagetype,
+                variant: variant,
+                href: url,
+                autoHideDelay: timeout,
+                solid: true
+            })
+        },
+        deletecartitem: function (href) {
+            axios({
+                method: "post",
+                baseURL: href
+            }).then(function (response) {
+                const newfly = response.data.sidebarshoppingcartmodel;
+                vm.flycart = newfly;
+                vm.flycartitems = newfly.Items;
+                vm.flycartindicator = newfly.TotalProducts;
+            }).catch(function (error) {
+                alert(error);
+            });
+            return false;
+        },
+        updateCompareProductsQty: function () {
+            const cookie = AxiosCart.getCookie('Grand.CompareProduct');
+            if (cookie !== '') {
+                const qty = cookie.split('|').filter(Boolean).length;
+                this.compareProductsQty = qty;
+            } else {
+                this.compareProductsQty = 0;
+            }
+        },
+        updateSidebarShoppingCart: function (url) {
+            axios({
+                baseURL: url,
                 method: 'get',
                 data: null,
                 headers: {
@@ -64,23 +241,53 @@
                 this.flycartitems = response.data.Items,
                 this.flycartindicator = response.data.TotalProducts,
                 this.flycartfirstload = false
-            ))    
+            ))
         },
-        updateWishlist: function () {
+        updateWishlist: function (url) {
             axios({
-                baseURL: '/wishlist',
+                baseURL: url,
                 method: 'get',
+                data: null,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',                    
+                }
+            }).then(response => (
+                this.loader = false,
+                this.flywish = response.data,
+                this.wishlistitems = response.data.Items,
+                this.wishindicator = response.data.Items.length
+            ))
+        },
+        getCompareList: function (url) {
+            this.loader = true;
+            axios({
+                baseURL: url,
+                method: 'get',
+                params: {
+                    t: new Date().getTime()
+                },
                 data: null,
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'X-Response-View': 'Json'
                 }
-            }).then(response => (
-                this.flywish = response.data,
-                this.wishlistitems = response.data.Items,
-                this.wishindicator = response.data.Items.length
-            ))
+            }).then(response => {
+                this.loader = false;
+                this.compareproducts = response.data
+            })
+        },
+        removeFromCompareList: function (id) {
+            if (id !== undefined) {
+                const compareList = AxiosCart.getCookie('Grand.CompareProduct');
+                const newCompareList = compareList.replace(id, '');
+
+                AxiosCart.setCookie('Grand.CompareProduct', newCompareList);
+            } else {
+                AxiosCart.setCookie('Grand.CompareProduct', '');
+            }
+            this.updateCompareProductsQty();
         },
         showModalOutOfStock: function () {
             this.$refs['out-of-stock'].show()
@@ -108,11 +315,19 @@
             var Image = parent.querySelectorAll(".main-product-img")[0];
             Image.setAttribute('src', Imagesrc);
         },
-        formSubmit(e) {
-            if (e && e.submitter.dataset.form !== undefined) {
-                eval(e.submitter.dataset.form)
-            } else {
-                vm.$refs.form.submit();
+        formSubmit() {
+            vm.$refs.form.submit();
+        },
+        formSubmitParam(e, observer) {
+            if (e && observer) {
+                observer.validate().then(success => {
+                    if (!success) {
+                        return
+                    } else {
+                        var submitter = e.target.querySelector('[type="submit"]');
+                        eval(submitter.dataset.form)
+                    }
+                });
             }
         },
         isMobile: function () {
@@ -141,7 +356,11 @@
                     }
                 } else {
                     if (response.data.price) {
-                        vm.PopupQuickViewVueModal.ProductPrice.Price = response.data.price;
+                        if (vm.PopupQuickViewVueModal.ProductType == 0) {
+                            vm.PopupQuickViewVueModal.ProductPrice.Price = response.data.price;
+                        } else {
+                            vm.PopupQuickViewVueModal.AssociatedProducts.find(x => x.Id === pId).ProductPrice.Price = response.data.price;
+                        }
                     }
                     if (response.data.sku) {
                         vm.PopupQuickViewVueModal.Sku = response.data.sku;
@@ -309,80 +528,6 @@
                 }
             }
         },
-        addProductReview: function (url) {
-            axios({
-                url: url,
-                method: 'get',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-Response-View': 'Json'
-                }
-            }).then(function (response) {
-                vm.PopupProductReviewVueModal = response.data;
-                vm.$refs['ModalProductReview'].show();
-            });
-        },
-        modalReviewShown: function () {
-            if (vm.PopupProductReviewVueModal.AddProductReview.DisplayCaptcha && document.querySelector("#ModalProductReview .captcha-box") == null) {
-                var html = document.getElementById("captcha-box");
-                document.getElementById("captcha-popup").prepend(html);
-            }
-            vm.PopupProductReviewVueModal = Object.assign({}, vm.PopupProductReviewVueModal, { ReviewTitle: '', ReviewText: '' })
-        },
-        modalReviewClose: function () {
-            if (vm.PopupProductReviewVueModal.AddProductReview.DisplayCaptcha && document.querySelector("#ModalProductReview .captcha-box") !== null) {
-                var html = document.getElementById("captcha-box");
-                document.getElementById("captcha-container").prepend(html);
-            }
-        },
-        submitProductReview: function () {
-            var form = document.getElementById("addReviewForm");
-            var url = form.getAttribute("action");
-            var resultTitle = form.getAttribute("data-title");
-            var bodyFormData = new FormData(form);
-            axios({
-                method: "post",
-                url: url,
-                data: bodyFormData,
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    'X-Response-View': 'Json'
-                },
-            }).then(function (response) {
-                vm.PopupProductReviewVueModal = response.data;
-                productreviews.Model = response.data.Items;
 
-                var result = response.data.AddProductReview.Result;
-                var variant = "";
-
-                if (response.data.AddProductReview.SuccessfullyAdded) {
-
-                    variant = "info";
-                    vm.$refs['ModalProductReview'].hide();
-
-                } else {
-                    variant = "danger";
-                }
-
-                new Vue({
-                    el: ".modal-place",
-                    methods: {
-                        toast() {
-                            this.$bvToast.toast(result, {
-                                title: resultTitle,
-                                variant: variant,
-                                autoHideDelay: 3000,
-                                solid: true
-                            })
-                        }
-                    },
-                    mounted: function () {
-                        this.toast();
-                    }
-                });
-            });
-            return
-        }
     },
 });

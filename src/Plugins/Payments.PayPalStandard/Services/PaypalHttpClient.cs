@@ -1,9 +1,5 @@
-﻿using Grand.Business.Common.Interfaces.Logging;
-using System;
-using System.Collections.Generic;
+﻿using Grand.Business.Core.Interfaces.Common.Logging;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Payments.PayPalStandard.Services
 {

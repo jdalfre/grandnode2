@@ -1,7 +1,7 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Configuration;
 using Grand.Infrastructure.Plugins;
@@ -15,13 +15,8 @@ using Grand.Web.Common.Themes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -36,7 +31,7 @@ namespace Grand.Web.Admin.Controllers
         private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly IServiceProvider _serviceProvider;
         private readonly IWorkContext _workContext;
-        private readonly AppConfig _appConfig;
+        private readonly ExtensionsConfig _extConfig;
         #endregion
 
         #region Constructors
@@ -48,7 +43,7 @@ namespace Grand.Web.Admin.Controllers
             IHostApplicationLifetime applicationLifetime,
             IWorkContext workContext,
             IServiceProvider serviceProvider,
-            AppConfig appConfig)
+            ExtensionsConfig extConfig)
         {
             _translationService = translationService;
             _themeProvider = themeProvider;
@@ -56,7 +51,7 @@ namespace Grand.Web.Admin.Controllers
             _workContext = workContext;
             _applicationLifetime = applicationLifetime;
             _serviceProvider = serviceProvider;
-            _appConfig = appConfig;
+            _extConfig = extConfig;
         }
 
         #endregion
@@ -192,6 +187,8 @@ namespace Grand.Web.Admin.Controllers
 
                 Success(_translationService.GetResource("Admin.Plugins.Installed"));
 
+                _ = _logger.InsertLog(Domain.Logging.LogLevel.Information, $"The plugin has been installed by the user {_workContext.CurrentCustomer.Email}");
+
                 //stop application
                 _applicationLifetime.StopApplication();
             }
@@ -229,6 +226,8 @@ namespace Grand.Web.Admin.Controllers
 
                 Success(_translationService.GetResource("Admin.Plugins.Uninstalled"));
 
+                _ = _logger.InsertLog(Domain.Logging.LogLevel.Information, $"The plugin has been uninstalled by the user {_workContext.CurrentCustomer.Email}");
+
                 //stop application
                 _applicationLifetime.StopApplication();
             }
@@ -243,7 +242,7 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public IActionResult Remove(IFormCollection form)
         {
-            if (_appConfig.DisableUploadExtensions)
+            if (_extConfig.DisableUploadExtensions)
             {
                 Error("Upload plugins/themes is disable");
                 return RedirectToAction("List");
@@ -275,6 +274,8 @@ namespace Grand.Web.Admin.Controllers
                 //uninstall plugin
                 Success(_translationService.GetResource("Admin.Plugins.Removed"));
 
+                _ = _logger.InsertLog(Domain.Logging.LogLevel.Information, $"The plugin has been removed by the user {_workContext.CurrentCustomer.Email}");
+
                 //stop application
                 _applicationLifetime.StopApplication();
             }
@@ -288,6 +289,8 @@ namespace Grand.Web.Admin.Controllers
 
         public IActionResult ReloadList()
         {
+            _ = _logger.InsertLog(Domain.Logging.LogLevel.Information, $"Reload list of plugins by the user {_workContext.CurrentCustomer.Email}");
+
             //stop application
             _applicationLifetime.StopApplication();
             return RedirectToAction("List");
@@ -297,7 +300,7 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public IActionResult UploadPlugin(IFormFile zippedFile)
         {
-            if(_appConfig.DisableUploadExtensions)
+            if(_extConfig.DisableUploadExtensions)
             {
                 Error("Upload plugins/themes is disable");
                 return RedirectToAction("List");
@@ -335,6 +338,8 @@ namespace Grand.Web.Admin.Controllers
                     System.IO.File.Delete(zipFilePath);
             }
 
+            _ = _logger.InsertLog(Domain.Logging.LogLevel.Information, $"The plugin has been uploaded by the user {_workContext.CurrentCustomer.Email}");
+
             //stop application
             _applicationLifetime.StopApplication();
 
@@ -344,7 +349,7 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public IActionResult UploadTheme(IFormFile zippedFile)
         {
-            if (_appConfig.DisableUploadExtensions)
+            if (_extConfig.DisableUploadExtensions)
             {
                 Error("Upload plugins/themes is disable");
                 return RedirectToAction("GeneralCommon", "Setting");
@@ -447,7 +452,7 @@ namespace Grand.Web.Admin.Controllers
                             }
                             catch (Exception ex)
                             {
-                                _logger.Error(ex.Message);
+                                _ = _logger.Error(ex.Message);
                             };
                         }
                     }

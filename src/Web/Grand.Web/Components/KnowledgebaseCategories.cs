@@ -1,14 +1,10 @@
 ﻿using Grand.Infrastructure;
 using Grand.Domain.Knowledgebase;
 using Grand.Web.Common.Components;
-using Grand.Business.Marketing.Interfaces.Knowledgebase;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Marketing.Knowledgebase;
 using Grand.Web.Models.Knowledgebase;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Grand.Business.Common.Extensions;
+using Grand.Business.Core.Extensions;
 
 namespace Grand.Web.ViewComponents
 {

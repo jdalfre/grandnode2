@@ -1,10 +1,9 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Storage.Extensions;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Captcha;
 using Grand.Web.Common.Themes;
@@ -25,13 +24,9 @@ using Grand.Web.Models.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Grand.Web.Common.Controllers;
+using Grand.Web.Common.Extensions;
 
 namespace Grand.Web.Controllers
 {
@@ -97,23 +92,19 @@ namespace Grand.Web.Controllers
 
             return language != null ? language.Published : false;
         }
-        private string AddLanguageSeo(string url, PathString pathBase, Language language)
+
+        private string AddLanguageSeo(string url, Language language)
         {
             if (language == null)
                 throw new ArgumentNullException(nameof(language));
 
-            //remove application path from raw URL
             if (!string.IsNullOrEmpty(url))
             {
-                var _ = new PathString(url).StartsWithSegments(pathBase, out PathString result);
-                url = WebUtility.UrlDecode(result);
+                url = Flurl.Url.EncodeIllegalCharacters(url);
             }
 
             //add language code
-            url = $"/{language.UniqueSeoCode}{url}";
-            url = pathBase + url;
-
-            return url;
+            return $"/{language.UniqueSeoCode}/{url.TrimStart('/')}";
         }
 
         #endregion
@@ -136,6 +127,16 @@ namespace Grand.Web.Controllers
             return View();
         }
 
+        public virtual IActionResult Route(string routeName)
+        {
+            if (string.IsNullOrEmpty(routeName))
+                return Json(new { redirectToUrl = string.Empty });
+
+            var url = Url.RouteUrl(routeName);
+
+            return Json(new { redirectToUrl = url });
+        }
+
         //external authentication error
         public virtual IActionResult ExternalAuthenticationError(IEnumerable<string> errors)
         {
@@ -143,12 +144,13 @@ namespace Grand.Web.Controllers
         }
 
         [PublicStore(true)]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> SetLanguage(
             [FromServices] AppConfig config,
-            string langid, string returnUrl = "")
+            string langcode, string returnUrl = default)
         {
 
-            var language = await _languageService.GetLanguageById(langid);
+            var language = await _languageService.GetLanguageByCode(langcode);
             if (!language?.Published ?? false)
                 language = _workContext.WorkingLanguage;
 
@@ -163,18 +165,21 @@ namespace Grand.Web.Controllers
             //language part in URL
             if (config.SeoFriendlyUrlsForLanguagesEnabled)
             {
-                if (await IsLocalized(returnUrl, this.Request.PathBase))
-                    returnUrl = RemoveLanguageSeoCode(returnUrl, this.Request.PathBase);
+                if (await IsLocalized(returnUrl, Request.PathBase))
+                    returnUrl = RemoveLanguageSeoCode(returnUrl, Request.PathBase);
 
-                returnUrl = AddLanguageSeo(returnUrl, this.Request.PathBase, language);
+                returnUrl = AddLanguageSeo(returnUrl, language);
             }
 
             await _workContext.SetWorkingLanguage(language);
 
+            //notification
+            await _mediator.Publish(new ChangeLanguageEvent(_workContext.CurrentCustomer, language));
+
             return Redirect(returnUrl);
         }
 
-        //helper method to redirect users.
+        //helper method to redirect (use in SlugRouteTransformer).
         public virtual IActionResult InternalRedirect(string url, bool permanentRedirect)
         {
             //ensure it's invoked from our GenericPathRoute class
@@ -199,20 +204,22 @@ namespace Grand.Web.Controllers
                 permanentRedirect = false;
             }
 
-            url = Uri.EscapeUriString(WebUtility.UrlDecode(url));
+            url = Flurl.Url.EncodeIllegalCharacters(url);
 
             if (permanentRedirect)
                 return RedirectPermanent(url);
+
             return Redirect(url);
         }
 
+        [DenySystemAccount]
         [PublicStore(true)]
         public virtual async Task<IActionResult> SetCurrency(
             [FromServices] ICurrencyService currencyService,
             [FromServices] IUserFieldService userFieldService,
-            string customerCurrency, string returnUrl = "")
+            string currencyCode, string returnUrl = "")
         {
-            var currency = await currencyService.GetCurrencyById(customerCurrency);
+            var currency = await currencyService.GetCurrencyByCode(currencyCode);
             if (currency != null)
                 await _workContext.SetWorkingCurrency(currency);
 
@@ -222,8 +229,11 @@ namespace Grand.Web.Controllers
             //clear gift card
             await userFieldService.SaveField(_workContext.CurrentCustomer, SystemCustomerFieldNames.GiftVoucherCoupons, "");
 
+            //notification
+            await _mediator.Publish(new ChangeCurrencyEvent(_workContext.CurrentCustomer, currency));
+
             //home page
-            if (String.IsNullOrEmpty(returnUrl))
+            if (string.IsNullOrEmpty(returnUrl))
                 returnUrl = Url.RouteUrl("HomePage");
 
             //prevent open redirection attack
@@ -233,37 +243,38 @@ namespace Grand.Web.Controllers
             return Redirect(returnUrl);
         }
 
+        [DenySystemAccount]
         //available even when navigation is not allowed
         [PublicStore(true)]
         public virtual async Task<IActionResult> SetStore(
             [FromServices] IStoreService storeService,
             [FromServices] IStoreHelper _storeHelper,
             [FromServices] CommonSettings commonSettings,
-            string store, string returnUrl = "")
+            string shortcut, string returnUrl = "")
         {
-            var currentstoreid = _workContext.CurrentStore.Id;
-            if (currentstoreid != store)
+            var currentstoreShortcut = _workContext.CurrentStore.Shortcut;
+            if (currentstoreShortcut != shortcut)
             {
                 if (commonSettings.AllowToSelectStore)
                 {
-                    var selectedstore = await storeService.GetStoreById(store);
+                    var selectedstore = storeService.GetAll().FirstOrDefault(x => x.Shortcut.ToLowerInvariant() == shortcut.ToLowerInvariant());
                     if (selectedstore != null)
-                        await _storeHelper.SetStoreCookie(store);
-                }
-            }
-            var prevStore = await storeService.GetStoreById(currentstoreid);
-            var currStore = await storeService.GetStoreById(store);
+                    {
+                        await _storeHelper.SetStoreCookie(selectedstore.Id);
 
-            if (prevStore != null && currStore != null)
-            {
-                if (prevStore.Url != currStore.Url)
-                {
-                    return Redirect(currStore.SslEnabled ? currStore.SecureUrl : currStore.Url);
+                        //notification
+                        await _mediator.Publish(new ChangeStoreEvent(_workContext.CurrentCustomer, selectedstore));
+
+                        if (selectedstore.Url != _workContext.CurrentStore.Url)
+                        {
+                            return Redirect(selectedstore.SslEnabled ? selectedstore.SecureUrl : selectedstore.Url);
+                        }
+                    }
                 }
             }
 
             //home page
-            if (String.IsNullOrEmpty(returnUrl))
+            if (string.IsNullOrEmpty(returnUrl))
                 returnUrl = Url.RouteUrl("HomePage");
 
             //prevent open redirection attack
@@ -273,6 +284,7 @@ namespace Grand.Web.Controllers
             return Redirect(returnUrl);
         }
 
+        [DenySystemAccount]
         //available even when navigation is not allowed
         [PublicStore(true)]
         public virtual async Task<IActionResult> SetTaxType(int customerTaxType, string returnUrl = "")
@@ -280,8 +292,11 @@ namespace Grand.Web.Controllers
             var taxDisplayType = (TaxDisplayType)Enum.ToObject(typeof(TaxDisplayType), customerTaxType);
             await _workContext.SetTaxDisplayType(taxDisplayType);
 
+            //notification
+            await _mediator.Publish(new ChangeTaxTypeEvent(_workContext.CurrentCustomer, taxDisplayType));
+
             //home page
-            if (String.IsNullOrEmpty(returnUrl))
+            if (string.IsNullOrEmpty(returnUrl))
                 returnUrl = Url.RouteUrl("HomePage");
 
             //prevent open redirection attack
@@ -290,6 +305,28 @@ namespace Grand.Web.Controllers
 
             return Redirect(returnUrl);
         }
+
+        [DenySystemAccount]
+        public virtual async Task<IActionResult> SetStoreTheme(
+            [FromServices] IThemeContext themeContext, string themeName, string returnUrl = "")
+        {
+            await themeContext.SetWorkingTheme(themeName);
+
+            //notification
+            await _mediator.Publish(new ChangeThemeEvent(_workContext.CurrentCustomer, themeName));
+
+            //home page
+            if (string.IsNullOrEmpty(returnUrl))
+                returnUrl = Url.RouteUrl("HomePage");
+
+            //prevent open redirection attack
+            if (!Url.IsLocalUrl(returnUrl))
+                returnUrl = Url.RouteUrl("HomePage");
+
+            return Redirect(returnUrl);
+        }
+
+
 
         //contact us page
         //available even when a store is closed
@@ -304,8 +341,7 @@ namespace Grand.Web.Controllers
                 if (closestorepage == null || !closestorepage.AccessibleWhenStoreClosed)
                     return RedirectToRoute("StoreClosed");
             }
-            var model = await _mediator.Send(new ContactUsCommand()
-            {
+            var model = await _mediator.Send(new ContactUsCommand() {
                 Customer = _workContext.CurrentCustomer,
                 Language = _workContext.WorkingLanguage,
                 Store = _workContext.CurrentStore
@@ -317,6 +353,7 @@ namespace Grand.Web.Controllers
         [AutoValidateAntiforgeryToken]
         [ValidateCaptcha]
         [ClosedStore(true)]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> ContactUsSend(
             [FromServices] StoreInformationSettings storeInformationSettings,
             [FromServices] IPageService pageService,
@@ -337,12 +374,12 @@ namespace Grand.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                var result = await _mediator.Send(new ContactUsSendCommand()
-                {
+                var result = await _mediator.Send(new ContactUsSendCommand() {
                     CaptchaValid = captchaValid,
                     Form = form,
                     Model = model,
-                    Store = _workContext.CurrentStore
+                    Store = _workContext.CurrentStore,
+                    IpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString()
                 });
 
                 if (result.errors.Any())
@@ -361,8 +398,7 @@ namespace Grand.Web.Controllers
                     return View(model);
                 }
             }
-            model = await _mediator.Send(new ContactUsCommand()
-            {
+            model = await _mediator.Send(new ContactUsCommand() {
                 Customer = _workContext.CurrentCustomer,
                 Language = _workContext.WorkingLanguage,
                 Store = _workContext.CurrentStore,
@@ -380,8 +416,7 @@ namespace Grand.Web.Controllers
             if (!commonSettings.SitemapEnabled)
                 return RedirectToRoute("HomePage");
 
-            var model = await _mediator.Send(new GetSitemap()
-            {
+            var model = await _mediator.Send(new GetSitemap() {
                 Customer = _workContext.CurrentCustomer,
                 Language = _workContext.WorkingLanguage,
                 Store = _workContext.CurrentStore
@@ -389,26 +424,10 @@ namespace Grand.Web.Controllers
             return View(model);
         }
 
-        public virtual async Task<IActionResult> SetStoreTheme(
-            [FromServices] IThemeContext themeContext, string themeName, string returnUrl = "")
-        {
-            await themeContext.SetWorkingTheme(themeName);
-
-            //home page
-            if (string.IsNullOrEmpty(returnUrl))
-                returnUrl = Url.RouteUrl("HomePage");
-
-            //prevent open redirection attack
-            if (!Url.IsLocalUrl(returnUrl))
-                returnUrl = Url.RouteUrl("HomePage");
-
-            return Redirect(returnUrl);
-        }
-
-
         [HttpPost]
         [ClosedStore(true)]
         [PublicStore(true)]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> CookieAccept(bool accept,
             [FromServices] StoreInformationSettings storeInformationSettings,
             [FromServices] IUserFieldService userFieldService,
@@ -444,8 +463,7 @@ namespace Grand.Web.Controllers
                 //disabled
                 return Json(new { html = "" });
 
-            var model = await _mediator.Send(new GetPrivacyPreference()
-            {
+            var model = await _mediator.Send(new GetPrivacyPreference() {
                 Customer = _workContext.CurrentCustomer,
                 Store = _workContext.CurrentStore
             });
@@ -454,12 +472,13 @@ namespace Grand.Web.Controllers
             {
                 html = await this.RenderPartialViewToString("PrivacyPreference", model, true),
                 model = model,
-            }); 
+            });
         }
 
         [HttpPost]
         [ClosedStore(true)]
         [PublicStore(true)]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> PrivacyPreference(IFormCollection form,
             [FromServices] StoreInformationSettings storeInformationSettings,
             [FromServices] IUserFieldService userFieldService,
@@ -495,7 +514,7 @@ namespace Grand.Web.Controllers
         [PublicStore(true)]
         public virtual async Task<IActionResult> RobotsTextFile()
         {
-            var sb = await _mediator.Send(new GetRobotsTextFile());
+            var sb = await _mediator.Send(new GetRobotsTextFile() { StoreId = _workContext.CurrentStore.Id });
             return Content(sb, "text/plain");
         }
 
@@ -510,10 +529,10 @@ namespace Grand.Web.Controllers
         public virtual IActionResult StoreClosed() => View();
 
         [HttpPost]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> ContactAttributeChange(IFormCollection form)
         {
-            var result = await _mediator.Send(new ContactAttributeChangeCommand()
-            {
+            var result = await _mediator.Send(new ContactAttributeChangeCommand() {
                 Form = form,
                 Customer = _workContext.CurrentCustomer,
                 Store = _workContext.CurrentStore
@@ -526,6 +545,7 @@ namespace Grand.Web.Controllers
         }
 
         [HttpPost]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> UploadFileContactAttribute(string attributeId,
             [FromServices] IDownloadService downloadService,
             [FromServices] IContactAttributeService contactAttributeService)
@@ -571,7 +591,7 @@ namespace Grand.Web.Controllers
                 var allowedFileExtensions = attribute.ValidationFileAllowedExtensions.ToLowerInvariant()
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
-                if(!allowedFileExtensions.Contains(fileExtension.ToLowerInvariant()))
+                if (!allowedFileExtensions.Contains(fileExtension.ToLowerInvariant()))
                 {
                     return Json(new
                     {
@@ -599,8 +619,7 @@ namespace Grand.Web.Controllers
                 }
             }
 
-            var download = new Download
-            {
+            var download = new Download {
                 DownloadGuid = Guid.NewGuid(),
                 UseDownloadUrl = false,
                 DownloadUrl = "",
@@ -627,6 +646,7 @@ namespace Grand.Web.Controllers
 
 
         [HttpPost, ActionName("PopupInteractiveForm")]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> PopupInteractiveForm(IFormCollection formCollection)
         {
             var result = await _mediator.Send(new PopupInteractiveCommand() { Form = formCollection });
@@ -640,6 +660,7 @@ namespace Grand.Web.Controllers
         [HttpPost]
         [ClosedStore(true)]
         [PublicStore(true)]
+        [DenySystemAccount]
         public virtual async Task<IActionResult> SaveCurrentPosition(
             LocationModel model,
             [FromServices] CustomerSettings customerSettings)

@@ -1,4 +1,4 @@
-﻿using Grand.Business.Checkout.Interfaces.Shipping;
+﻿using Grand.Business.Core.Interfaces.Checkout.Shipping;
 using Grand.Business.Checkout.Services.Shipping;
 using Grand.Domain.Data;
 using Grand.Domain.Shipping;
@@ -7,9 +7,6 @@ using Grand.Infrastructure.Events;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Tests.Services.Shipping
 {

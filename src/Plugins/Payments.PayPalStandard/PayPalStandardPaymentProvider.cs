@@ -1,13 +1,13 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Enum;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Utilities;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Enums.Checkout;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Utilities.Checkout;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Orders;
 using Grand.Domain.Payments;
 using Grand.Domain.Shipping;
@@ -15,15 +15,7 @@ using Grand.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Payments.PayPalStandard
 {
@@ -104,7 +96,7 @@ namespace Payments.PayPalStandard
         private async Task<IDictionary<string, string>> CreateQueryParameters(Order order)
         {
             //get store location
-            var storeLocation = _workContext.CurrentHost.Url;
+            var storeLocation = _workContext.CurrentHost.Url.TrimEnd('/');
             var stateProvince = "";
             var countryCode = "";
             if (!String.IsNullOrEmpty(order.ShippingAddress?.StateProvinceId))

@@ -1,5 +1,5 @@
-﻿using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Business.System.Services.BackgroundServices.ScheduleTasks;
 using Grand.Domain;
 using Grand.Domain.Customers;
@@ -7,9 +7,6 @@ using Grand.Domain.Logging;
 using Grand.Domain.Messages;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Tests.Services.BackgroundService
 {
@@ -62,7 +59,7 @@ namespace Grand.Business.System.Tests.Services.BackgroundService
                  It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>())).ThrowsAsync(new Exception());
             _loggerMock.Setup(c => c.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
             await _task.Execute();
-            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>()), Times.Once);
+            _loggerMock.Verify(c => c.InsertLog(Domain.Logging.LogLevel.Error, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Customer>(), null, null, null), Times.Once);
             _queuedEmailServiceMock.Verify(c => c.UpdateQueuedEmail(It.IsAny<QueuedEmail>()), Times.Once);
         }
     }

@@ -1,5 +1,5 @@
 ﻿@model AddressModel
-@{ 
+@{
     var prefix = ViewData.TemplateInfo.HtmlFieldPrefix;
 }
 @if (Model.CountryEnabled && Model.StateProvinceEnabled)
@@ -20,7 +20,7 @@
                         elChild.innerHTML = id.name;
                         ddlStates.appendChild(elChild);
                     });
-                    createorupdateaddress.StateProvinceId = response.data[0].id;
+                    createorupdateaddress@{@prefix}.StateProvinceId = response.data[0].id;
                 }).then(function () {
                     ddlStates.classList.remove('is-valid');
                     ddlStates.classList.add('is-invalid');
@@ -42,11 +42,18 @@
 }
 <input asp-for="Id" type="hidden" />
 <div class="edit-address row">
+    @if (Model.NameEnabled)
+    {
+        <div class="form-group col-sm-12 col-md-12">
+            <label asp-for="Name" class="col-form-label">@Loc["Address.Fields.Name"]:</label>
+            <input asp-for="Name" v-model="createorupdateaddress@{@prefix}.Name" v-bind:class="['form-control']" />
+        </div>
+    }
     <div class="form-group col-sm-12 col-md-6">
         <validation-provider tag="div" rules="required" :name="'@prefix' + '.FirstName'" v-slot="{ errors, classes }">
             <label asp-for="FirstName" class="col-form-label">@Loc["Address.Fields.FirstName"]:</label>
             <span class="required">*</span>
-            <input asp-for="FirstName" v-model="createorupdateaddress.FirstName" v-bind:class="[classes , 'form-control']" />
+            <input asp-for="FirstName" v-model="createorupdateaddress@{@prefix}.FirstName" v-bind:class="[classes , 'form-control']" />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="FirstName"></span>
         </validation-provider>
@@ -55,7 +62,7 @@
         <validation-provider tag="div" rules="required" :name="'@prefix'  + '.LastName'" v-slot="{ errors, classes }">
             <label asp-for="LastName" class="col-form-label">@Loc["Address.Fields.LastName"]:</label>
             <span class="required">*</span>
-            <input asp-for="LastName" v-model="createorupdateaddress.LastName" v-bind:class="[classes , 'form-control']" />
+            <input asp-for="LastName" v-model="createorupdateaddress@{@prefix}.LastName" v-bind:class="[classes , 'form-control']" />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="LastName"></span>
         </validation-provider>
@@ -64,7 +71,7 @@
         <validation-provider tag="div" rules="required|email" :name="'@prefix'  + '.Email'" v-slot="{ errors, classes }">
             <label asp-for="Email" class="col-form-label">@Loc["Address.Fields.Email"]:</label>
             <span class="required">*</span>
-            <input asp-for="Email" v-model="createorupdateaddress.Email" v-bind:class="[classes , 'form-control']" />
+            <input asp-for="Email" v-model="createorupdateaddress@{@prefix}.Email" v-bind:class="[classes , 'form-control']" asp-readonly=@(Model.DisallowUsersToChangeEmail) />
             <span class="field-validation-error">{{ errors[0] }}</span>
             <span asp-validation-for="Email"></span>
         </validation-provider>
@@ -77,7 +84,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix'  + '.Company'" v-slot="{ errors, classes }">
                     <label asp-for="Company" class="col-form-label">@Loc["Address.Fields.Company"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="Company" v-model="createorupdateaddress.Company" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="Company" v-model="createorupdateaddress@{@prefix}.Company" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="Company"></span>
                 </validation-provider>
@@ -98,7 +105,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.VatNumber'" v-slot="{ errors, classes }">
                     <label asp-for="VatNumber" class="col-form-label">@Loc["Address.Fields.VatNumber"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="VatNumber" v-model="createorupdateaddress.VatNumber" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="VatNumber" v-model="createorupdateaddress@{@prefix}.VatNumber" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="VatNumber"></span>
                 </validation-provider>
@@ -118,7 +125,7 @@
                 <label asp-for="CountryId" class="col-form-label">@Loc["Address.Fields.Country"]:</label>
                 <span class="required">*</span>
                 <select asp-for="CountryId" asp-items="Model.AvailableCountries"
-                        onchange="@Html.IdFor(model => model.CountryId)_select_element(this)" v-bind:class="[classes , 'form-control custom-select']" v-model="createorupdateaddress.CountryId"></select>
+                        onchange="@Html.IdFor(model => model.CountryId)_select_element(this)" v-bind:class="[classes , 'form-control custom-select']" v-model="createorupdateaddress@{@prefix}.CountryId"></select>
                 <span class="field-validation-error">{{ errors[0] }}</span>
                 <span asp-validation-for="CountryId"></span>
             </validation-provider>
@@ -132,7 +139,7 @@
                 <label asp-for="StateProvinceId" class="col-form-label">@Loc["Address.Fields.StateProvince"]:</label>
                 <span class="required">*</span>
                 <select asp-for="StateProvinceId" data-val-required="@Loc["Address.Fields.StateProvince.Required"]" v-bind:class="[classes , 'form-control custom-select']"
-                        onchange="@Html.IdFor(model => model.StateProvinceId)_select_element(this)" asp-items="Model.AvailableStates" v-model="createorupdateaddress.StateProvinceId"></select>
+                        onchange="@Html.IdFor(model => model.StateProvinceId)_select_element(this)" asp-items="Model.AvailableStates" v-model="createorupdateaddress@{@prefix}.StateProvinceId"></select>
                 <span class="field-validation-error">{{ errors[0] }}</span>
                 <span asp-validation-for="StateProvinceId"></span>
             </validation-provider>
@@ -146,7 +153,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.City'" v-slot="{ errors, classes }">
                     <label asp-for="City" class="col-form-label">@Loc["Address.Fields.City"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="City" v-model="createorupdateaddress.City" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="City" v-model="createorupdateaddress@{@prefix}.City" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="City"></span>
                 </validation-provider>
@@ -167,7 +174,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.Address1'" v-slot="{ errors, classes }">
                     <label asp-for="Address1" class="col-form-label">@Loc["Address.Fields.Address1"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="Address1" v-model="createorupdateaddress.Address1" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="Address1" v-model="createorupdateaddress@{@prefix}.Address1" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="Address1"></span>
                 </validation-provider>
@@ -188,7 +195,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.Address2'" v-slot="{ errors, classes }">
                     <label asp-for="Address2" class="col-form-label">@Loc["Address.Fields.Address2"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="Address2" v-model="createorupdateaddress.Address2" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="Address2" v-model="createorupdateaddress@{@prefix}.Address2" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="Address2"></span>
                 </validation-provider>
@@ -209,7 +216,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.ZipPostalCode'" v-slot="{ errors, classes }">
                     <label asp-for="ZipPostalCode" class="col-form-label">@Loc["Address.Fields.ZipPostalCode"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="ZipPostalCode" v-model="createorupdateaddress.ZipPostalCode" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="ZipPostalCode" v-model="createorupdateaddress@{@prefix}.ZipPostalCode" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="ZipPostalCode"></span>
                 </validation-provider>
@@ -230,7 +237,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.PhoneNumber'" v-slot="{ errors, classes }">
                     <label asp-for="PhoneNumber" class="col-form-label">@Loc["Address.Fields.PhoneNumber"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="PhoneNumber" v-model="createorupdateaddress.PhoneNumber" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="PhoneNumber" v-model="createorupdateaddress@{@prefix}.PhoneNumber" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="PhoneNumber"></span>
                 </validation-provider>
@@ -251,7 +258,7 @@
                 <validation-provider tag="div" rules="required" :name="'@prefix' + '.FaxNumber'" v-slot="{ errors, classes }">
                     <label asp-for="FaxNumber" class="col-form-label">@Loc["Address.Fields.FaxNumber"]:</label>
                     <span class="required">*</span>
-                    <input asp-for="FaxNumber" v-model="createorupdateaddress.FaxNumber" v-bind:class="[classes , 'form-control']" />
+                    <input asp-for="FaxNumber" v-model="createorupdateaddress@{@prefix}.FaxNumber" v-bind:class="[classes , 'form-control']" />
                     <span class="field-validation-error">{{ errors[0] }}</span>
                     <span asp-validation-for="FaxNumber"></span>
                 </validation-provider>
@@ -272,7 +279,7 @@
             <span asp-validation-for="Note"></span>
         </div>
     }
-    @if (Model.AddressTypeEnabled)
+    @if (Model.AddressTypeEnabled && !Model.HideAddressType)
     {
         <div class="form-group col-sm-12 col-md-6">
             <label asp-for="AddressTypeId" class="col-form-label">@Loc["Address.Fields.AddressType"]:</label>
@@ -286,10 +293,11 @@
     <div id="errors-address"></div>
 </div>
 <script asp-location="Footer" asp-order="301">
-    var createorupdateaddress = new Vue({
+    var createorupdateaddress@{@prefix} = new Vue({
             data: () => ({
                 @{
                     <text>
+                        Name: '@Html.Raw(Model.Name)',
                         FirstName: '@Html.Raw(Model.FirstName)',
                         LastName: '@Html.Raw(Model.LastName)',
                         Company: '@Html.Raw(Model.Company)',
@@ -303,9 +311,60 @@
                         FaxNumber: '@Html.Raw(Model.FaxNumber)',
                         VatNumber: '@Html.Raw(Model.VatNumber)',
                         Email: '@Html.Raw(Model.Email)',
-                        prefix: '@prefix'
+                        prefix: '@prefix',
+                        @foreach (var item in Model.CustomAddressAttributes)
+                        {
+                            @switch (item.AttributeControlType)
+                            {
+                                case AttributeControlType.DropdownList:
+                                {
+                                    @foreach (var itemValue in item.Values)
+                                    {
+                                        if (itemValue.IsPreSelected)
+                                        {
+                                            <text>address_attribute_</text> @item.Id <text>: '@itemValue.Id',</text>
+                                            break;
+                                        } else {
+                                            <text>address_attribute_</text> @item.Id <text>: '',</text>
+                                        }
+                                    }
+                                }
+                                break;
+                                case AttributeControlType.Checkboxes:
+                                case AttributeControlType.RadioList:
+                                case AttributeControlType.ReadonlyCheckboxes:
+                                {
+                                    <text>address_attribute_</text> @item.Id <text>: [
+                                        @foreach (var itemValue in item.Values)
+                                        {
+                                            if (itemValue.IsPreSelected)
+                                            {
+                                                <text>'@itemValue.Id',</text>
+                                            } else {
+                                                 <text>'',</text>
+                                            }
+                                        }
+                                    ],</text>
+                                }
+                                break;
+                                case AttributeControlType.TextBox:
+                                case AttributeControlType.MultilineTextbox:
+                                {
+                                    <text>address_attribute_</text> @item.Id <text>: @if (item.DefaultValue != null) { <text>'@item.DefaultValue'</text> } else { <text>''</text> },</text>
+                                }
+                                break;
+                            }
+
+                        }
                     </text>
                 }
-            })
-        });
+        }),
+        created() {
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll("[data-checked='true']").forEach(function (element) {
+                    element.checked = true;
+                })
+            });
+        }
+    });
 </script>

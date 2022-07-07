@@ -1,15 +1,13 @@
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Domain.Catalog;
 using Grand.Domain.Directory;
 using Grand.Domain.Localization;
 using Grand.Domain.Tax;
 using Grand.Infrastructure;
 using Grand.SharedKernel;
-using System;
 using System.Globalization;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Prices
 {
@@ -58,7 +56,8 @@ namespace Grand.Business.Catalog.Services.Prices
             string result = "";
             if (!String.IsNullOrEmpty(targetCurrency.CustomFormatting))
             {
-                result = amount.ToString(targetCurrency.CustomFormatting);
+                var cultureInfo = !String.IsNullOrEmpty(targetCurrency.DisplayLocale) ? new CultureInfo(targetCurrency.DisplayLocale) : null;
+                result = amount.ToString(targetCurrency.CustomFormatting, cultureInfo);
             }
             else
             {

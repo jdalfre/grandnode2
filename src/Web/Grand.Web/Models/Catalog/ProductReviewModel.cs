@@ -1,6 +1,5 @@
 ﻿using Grand.Infrastructure.ModelBinding;
 using Grand.Infrastructure.Models;
-using System.Collections.Generic;
 
 namespace Grand.Web.Models.Catalog
 {
@@ -30,6 +29,7 @@ namespace Grand.Web.Models.Catalog
 
         public IList<ProductReviewModel> Items { get; set; }
         public AddProductReviewModel AddProductReview { get; set; }
+        public ProductReviewOverviewModel ProductReviewOverviewModel { get; set; }
     }
 
     public partial class ProductReviewModel : BaseEntityModel

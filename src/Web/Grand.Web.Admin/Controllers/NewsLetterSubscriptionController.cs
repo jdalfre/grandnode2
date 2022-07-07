@@ -1,9 +1,9 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.System.Interfaces.ExportImport;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.System.ExportImport;
 using Grand.Infrastructure;
 using Grand.SharedKernel.Extensions;
 using Grand.Web.Admin.Extensions;
@@ -14,11 +14,6 @@ using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -210,7 +205,7 @@ namespace Grand.Web.Admin.Controllers
             {
                 if (importcsvfile != null && importcsvfile.Length > 0)
                 {
-                    int count = await _importManager.ImportNewsletterSubscribersFromTxt(importcsvfile.OpenReadStream());
+                    int count = await _importManager.ImportNewsletterSubscribersFromTxt(importcsvfile.OpenReadStream(), _workContext.CurrentStore.Id);
                     Success(String.Format(_translationService.GetResource("admin.marketing.NewsLetterSubscriptions.ImportEmailsSuccess"), count));
                     return RedirectToAction("List");
                 }

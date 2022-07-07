@@ -1,18 +1,15 @@
 ﻿using Grand.Api.DTOs.Catalog;
 using Grand.Api.Extensions;
-using Grand.Business.Catalog.Events.Models;
-using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Seo;
+using Grand.Business.Core.Events.Catalog;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Seo;
 using Grand.Domain.Catalog;
 using Grand.Domain.Seo;
+using Grand.Infrastructure;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {
@@ -26,6 +23,8 @@ namespace Grand.Api.Commands.Models.Catalog
         private readonly ILanguageService _languageService;
         private readonly IOutOfStockSubscriptionService _outOfStockSubscriptionService;
         private readonly IMediator _mediator;
+        private readonly IWorkContext _workContext;
+
         private readonly SeoSettings _seoSettings;
 
         public UpdateProductCommandHandler(
@@ -37,6 +36,7 @@ namespace Grand.Api.Commands.Models.Catalog
             IOutOfStockSubscriptionService outOfStockSubscriptionService,
             IStockQuantityService stockQuantityService,
             IMediator mediator,
+            IWorkContext workContext,
             SeoSettings seoSettings)
         {
             _productService = productService;
@@ -47,6 +47,7 @@ namespace Grand.Api.Commands.Models.Catalog
             _outOfStockSubscriptionService = outOfStockSubscriptionService;
             _stockQuantityService = stockQuantityService;
             _mediator = mediator;
+            _workContext = workContext;
             _seoSettings = seoSettings;
         }
 
@@ -76,7 +77,7 @@ namespace Grand.Api.Commands.Models.Catalog
             }
 
             //activity log
-            await _customerActivityService.InsertActivity("EditProduct", product.Id, _translationService.GetResource("ActivityLog.EditProduct"), product.Name);
+            _ = _customerActivityService.InsertActivity("EditProduct", product.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.EditProduct"), product.Name);
 
             //raise event 
             if (!prevPublished && product.Published)

@@ -1,12 +1,9 @@
-﻿using Grand.Business.Common.Interfaces.Stores;
+﻿using Grand.Business.Core.Interfaces.Common.Stores;
 using Grand.Domain.Stores;
 using Grand.Infrastructure;
 using Grand.SharedKernel.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common
 {
@@ -53,7 +50,7 @@ namespace Grand.Web.Common
                 if (_cachedStore == null)
                 {
                     //try to determine the current store by HOST header
-                    string host = _httpContextAccessor.HttpContext?.Request?.Headers[HeaderNames.Host];
+                    string host = _httpContextAccessor.HttpContext?.Request?.Host.Host;
 
                     var allStores = _storeService.GetAll();
                     var stores = allStores.Where(s => s.ContainsHostValue(host));

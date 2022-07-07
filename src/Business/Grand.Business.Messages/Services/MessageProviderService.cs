@@ -1,12 +1,11 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Messages.Commands.Models;
-using Grand.Business.Messages.DotLiquidDrops;
-using Grand.Business.Messages.Extensions;
-using Grand.Business.Messages.Interfaces;
-using Grand.Business.Messages.Queries.Models;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Commands.Messages;
+using Grand.Business.Core.Utilities.Messages.DotLiquidDrops;
+using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Queries.Messages;
 using Grand.Domain.Blogs;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
@@ -22,11 +21,7 @@ using Grand.Domain.Vendors;
 using Grand.Infrastructure;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Messages.Services
 {
@@ -38,7 +33,6 @@ namespace Grand.Business.Messages.Services
         private readonly IQueuedEmailService _queuedEmailService;
         private readonly ILanguageService _languageService;
         private readonly IEmailAccountService _emailAccountService;
-        private readonly IMessageTokenProvider _messageTokenProvider;
         private readonly IStoreService _storeService;
         private readonly IStoreHelper _storeHelper;
         private readonly IGroupService _groupService;
@@ -55,7 +49,6 @@ namespace Grand.Business.Messages.Services
             IQueuedEmailService queuedEmailService,
             ILanguageService languageService,
             IEmailAccountService emailAccountService,
-            IMessageTokenProvider messageTokenProvider,
             IStoreService storeService,
             IStoreHelper storeHelper,
             IGroupService groupService,
@@ -67,7 +60,6 @@ namespace Grand.Business.Messages.Services
             _queuedEmailService = queuedEmailService;
             _languageService = languageService;
             _emailAccountService = emailAccountService;
-            _messageTokenProvider = messageTokenProvider;
             _storeService = storeService;
             _storeHelper = storeHelper;
             _groupService = groupService;
@@ -831,16 +823,9 @@ namespace Grand.Business.Messages.Services
         /// <summary>
         /// Sends "email a friend" message
         /// </summary>
-        /// <param name="customer">Customer instance</param>
-        /// <param name="store">Store</param>
-        /// <param name="languageId">Message language identifier</param>
-        /// <param name="product">Product instance</param>
-        /// <param name="customerEmail">Customer's email</param>
-        /// <param name="friendsEmail">Friend's email</param>
-        /// <param name="personalMessage">Personal message</param>
         /// <returns>Queued email identifier</returns>
         public virtual async Task<int> SendProductQuestionMessage(Customer customer, Store store, string languageId,
-            Product product, string customerEmail, string fullName, string phone, string message)
+            Product product, string customerEmail, string fullName, string phone, string message, string ipaddress)
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
@@ -884,7 +869,8 @@ namespace Grand.Business.Messages.Services
                     Enquiry = bodyReplaced,
                     FullName = fullName,
                     Subject = subjectReplaced,
-                    EmailAccountId = emailAccount.Id
+                    EmailAccountId = emailAccount.Id,
+                    RemoteIpAddress = ipaddress
                 });
             }
 
@@ -1604,7 +1590,7 @@ namespace Grand.Business.Messages.Services
         /// <param name="customAttributes">CustomAttributes</param>
         /// <returns>Queued email identifier</returns>
         public virtual async Task<int> SendContactUsMessage(Customer customer, Store store, string languageId, string senderEmail,
-            string senderName, string subject, string body, string attrInfo, IList<CustomAttribute> customAttributes)
+            string senderName, string subject, string body, string attrInfo, IList<CustomAttribute> customAttributes, string ipaddress)
         {
             var language = await EnsureLanguageIsActive(languageId, store.Id);
             var messageTemplate = await GetMessageTemplate("Service.ContactUs", store.Id);
@@ -1655,7 +1641,8 @@ namespace Grand.Business.Messages.Services
                     Subject = string.IsNullOrEmpty(subject) ? "Contact Us (form)" : subject,
                     ContactAttributeDescription = attrInfo,
                     ContactAttributes = customAttributes,
-                    EmailAccountId = emailAccount.Id
+                    EmailAccountId = emailAccount.Id,
+                    RemoteIpAddress = ipaddress
                 });
             }
             return await SendNotification(messageTemplate, emailAccount, languageId, liquidObject, toEmail, toName,
@@ -1669,16 +1656,18 @@ namespace Grand.Business.Messages.Services
         /// <summary>
         /// Sends "contact vendor" message
         /// </summary>
-        /// <param name="vendor">Vendor</param>
+        /// <param name="customer">Customer</param>
         /// <param name="store">Store</param>
+        /// <param name="vendor">Vendor</param>
         /// <param name="languageId">Message language identifier</param>
         /// <param name="senderEmail">Sender email</param>
         /// <param name="senderName">Sender name</param>
         /// <param name="subject">Email subject. Pass null if you want a message template subject to be used.</param>
         /// <param name="body">Email body</param>
+        /// <param name="ipaddress">Ip address</param>
         /// <returns>Queued email identifier</returns>
         public virtual async Task<int> SendContactVendorMessage(Customer customer, Store store, Vendor vendor, string languageId, string senderEmail,
-            string senderName, string subject, string body)
+            string senderName, string subject, string body, string ipaddress)
         {
             if (vendor == null)
                 throw new ArgumentNullException(nameof(vendor));
@@ -1730,6 +1719,7 @@ namespace Grand.Business.Messages.Services
                     VendorId = vendor.Id,
                     Email = senderEmail,
                     Enquiry = body,
+                    RemoteIpAddress = ipaddress,
                     FullName = senderName,
                     Subject = String.IsNullOrEmpty(subject) ? "Contact Us (form)" : subject,
                     EmailAccountId = emailAccount.Id

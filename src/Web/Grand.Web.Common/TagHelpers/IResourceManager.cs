@@ -1,6 +1,5 @@
 ﻿//Contribution: Orchard project (https://github.com/OrchardCMS/OrchardCore)
 using Microsoft.AspNetCore.Html;
-using System.Collections.Generic;
 
 namespace Grand.Web.Common.TagHelpers
 {
@@ -24,10 +23,10 @@ namespace Grand.Web.Common.TagHelpers
         void RegisterFootScript(IHtmlContent script, int order);
 
         /// <summary>
-        /// Registers a custom template tag.
+        /// Registers a custom template tag in the head/footer.
         /// </summary>
         /// <param name="script"></param>
-        void RegisterTemplate(IHtmlContent script);
+        void RegisterTemplate(IHtmlContent script, bool head);
 
         /// <summary>
         /// Returns the registered head script resources.
@@ -67,7 +66,7 @@ namespace Grand.Web.Common.TagHelpers
         /// <summary>
         /// Renders the registered template tags.
         /// </summary>
-        void RenderTemplate(IHtmlContentBuilder builder);
+        void RenderTemplate(IHtmlContentBuilder builder, bool head);
 
         /// <summary>
         /// Registers a link tag.

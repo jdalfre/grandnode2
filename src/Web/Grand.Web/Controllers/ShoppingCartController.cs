@@ -1,16 +1,15 @@
-﻿using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.GiftVouchers;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Queries.Models.Orders;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Storage.Extensions;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Queries.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -18,15 +17,12 @@ using Grand.Domain.Media;
 using Grand.Domain.Orders;
 using Grand.Infrastructure;
 using Grand.Web.Commands.Models.ShoppingCart;
+using Grand.Web.Common.Filters;
 using Grand.Web.Features.Models.ShoppingCart;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Grand.Web.Common.Extensions;
 
 namespace Grand.Web.Controllers
 {
@@ -101,12 +97,31 @@ namespace Grand.Web.Controllers
 
         #region Shopping cart
 
+        public async Task<IActionResult> SidebarShoppingCart()
+        {
+            if (!_shoppingCartSettings.MiniShoppingCartEnabled)
+                return Content("");
+
+            if (!await _permissionService.Authorize(StandardPermission.EnableShoppingCart))
+                return Content("");
+
+            var model = await _mediator.Send(new GetMiniShoppingCart() {
+                Customer = _workContext.CurrentCustomer,
+                Currency = _workContext.WorkingCurrency,
+                Language = _workContext.WorkingLanguage,
+                TaxDisplayType = _workContext.TaxDisplayType,
+                Store = _workContext.CurrentStore
+            });
+            return Json(model);
+        }
+
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> CheckoutAttributeChange(IFormCollection form,
             [FromServices] ICheckoutAttributeParser checkoutAttributeParser,
             [FromServices] ICheckoutAttributeFormatter checkoutAttributeFormatter)
         {
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
 
             var checkoutAttributes = await _mediator.Send(new SaveCheckoutAttributesCommand()
             {
@@ -150,6 +165,7 @@ namespace Grand.Web.Controllers
             });
         }
 
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> UploadFileCheckoutAttribute(string attributeId,
             [FromServices] IDownloadService downloadService)
@@ -253,7 +269,7 @@ namespace Grand.Web.Controllers
             if (!await _permissionService.Authorize(StandardPermission.EnableShoppingCart))
                 return RedirectToRoute("HomePage");
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
             var model = await _mediator.Send(new GetShoppingCart()
             {
                 Cart = cart,
@@ -268,6 +284,7 @@ namespace Grand.Web.Controllers
         }
 
         [AutoValidateAntiforgeryToken]
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> UpdateQuantity(string shoppingcartId, int quantity)
         {
@@ -278,7 +295,7 @@ namespace Grand.Web.Controllers
                     warnings = "No permission",
                 });
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes())
+            var cart = (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes()))
                 .FirstOrDefault(x => x.Id == shoppingcartId);
             if (cart == null)
             {
@@ -305,7 +322,7 @@ namespace Grand.Web.Controllers
             warnings.AddRange(currSciWarnings);
 
             var model = await _mediator.Send(new GetShoppingCart() {
-                Cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes()),
+                Cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes()),
                 Customer = _workContext.CurrentCustomer,
                 Currency = _workContext.WorkingCurrency,
                 Language = _workContext.WorkingLanguage,
@@ -323,12 +340,13 @@ namespace Grand.Web.Controllers
 
         }
 
+        [DenySystemAccount]
         public virtual async Task<IActionResult> ClearCart()
         {
             if (!await _permissionService.Authorize(StandardPermission.EnableShoppingCart))
                 return RedirectToRoute("HomePage");
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
 
             foreach (var sci in cart)
             {
@@ -339,6 +357,7 @@ namespace Grand.Web.Controllers
 
         }
 
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> DeleteCartItem(string id, bool shoppingcartpage = false)
         {
@@ -350,7 +369,7 @@ namespace Grand.Web.Controllers
             if (_shoppingCartSettings.AllowOnHoldCart)
                 shoppingCartTypes.Add(ShoppingCartType.OnHoldCart);
 
-            var item = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray())
+            var item = (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray()))
                 .FirstOrDefault(sci => sci.Id == id);
 
             if (item != null)
@@ -376,7 +395,7 @@ namespace Grand.Web.Controllers
             }
             else
             {
-                var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+                var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
                 var shoppingcartmodel = await _mediator.Send(new GetShoppingCart()
                 {
                     Cart = cart,
@@ -396,6 +415,7 @@ namespace Grand.Web.Controllers
             }
         }
 
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> ChangeTypeCartItem(string id, bool status = false)
         {
@@ -410,7 +430,7 @@ namespace Grand.Web.Controllers
             if (_shoppingCartSettings.AllowOnHoldCart)
                 shoppingCartTypes.Add(ShoppingCartType.OnHoldCart);
 
-            var item = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray())
+            var item = (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray()))
                 .FirstOrDefault(sci => sci.Id == id);
 
             if (item != null)
@@ -428,7 +448,7 @@ namespace Grand.Web.Controllers
                 Store = _workContext.CurrentStore
             });
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
             var shoppingcartmodel = await _mediator.Send(new GetShoppingCart()
             {
                 Cart = cart,
@@ -460,9 +480,10 @@ namespace Grand.Web.Controllers
             }
         }
 
+        [DenySystemAccount]
         public virtual async Task<IActionResult> StartCheckout(IFormCollection form = null)
         {
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
             var checkoutAttributes = new List<CustomAttribute>();
             //parse and save checkout attributes
             if (form != null && form.Count > 0)
@@ -499,10 +520,11 @@ namespace Grand.Web.Controllers
         }
 
         [AutoValidateAntiforgeryToken]
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> ApplyDiscountCoupon(string discountcouponcode)
         {
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
 
             var message = string.Empty;
             var isApplied = false;
@@ -598,6 +620,7 @@ namespace Grand.Web.Controllers
         }
 
         [AutoValidateAntiforgeryToken]
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> ApplyGiftVoucher(string giftvouchercouponcode)
         {
@@ -605,7 +628,7 @@ namespace Grand.Web.Controllers
             if (giftvouchercouponcode != null)
                 giftvouchercouponcode = giftvouchercouponcode.Trim();
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
 
             var message = string.Empty;
             var isApplied = false;
@@ -613,7 +636,9 @@ namespace Grand.Web.Controllers
             if (!string.IsNullOrWhiteSpace(giftvouchercouponcode))
             {
                 var giftVoucher = (await _mediator.Send(new GetGiftVoucherQuery() { Code = giftvouchercouponcode, IsGiftVoucherActivated = true })).FirstOrDefault();
-                bool isGiftVoucherValid = giftVoucher != null && giftVoucher.IsGiftVoucherValid(_workContext.WorkingCurrency);
+                var isGiftVoucherValid = giftVoucher != null 
+                    && giftVoucher.IsGiftVoucherValid(_workContext.WorkingCurrency, _workContext.CurrentStore);
+
                 if (isGiftVoucherValid)
                 {
                     var result = _workContext.CurrentCustomer.ApplyCouponCode(SystemCustomerFieldNames.GiftVoucherCoupons, giftvouchercouponcode.Trim().ToLower());
@@ -658,7 +683,7 @@ namespace Grand.Web.Controllers
         [HttpPost]
         public virtual async Task<IActionResult> GetEstimateShipping(string countryId, string stateProvinceId, string zipPostalCode, IFormCollection form)
         {
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart, ShoppingCartType.Auctions);
 
             var model = await _mediator.Send(new GetEstimateShippingResult()
             {
@@ -675,6 +700,7 @@ namespace Grand.Web.Controllers
         }
 
         [AutoValidateAntiforgeryToken]
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> RemoveDiscountCoupon(string discountId)
         {
@@ -693,7 +719,7 @@ namespace Grand.Web.Controllers
                     }
                 }
             }
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
 
             var model = await _mediator.Send(new GetShoppingCart()
             {
@@ -712,6 +738,7 @@ namespace Grand.Web.Controllers
         }
 
         [AutoValidateAntiforgeryToken]
+        [DenySystemAccount]
         [HttpPost]
         public virtual async Task<IActionResult> RemoveGiftVoucherCode(string giftVoucherId, [FromServices] IGiftVoucherService giftVoucherService)
         {
@@ -725,7 +752,7 @@ namespace Grand.Web.Controllers
                     await _userFieldService.SaveField(_workContext.CurrentCustomer, SystemCustomerFieldNames.GiftVoucherCoupons, result);
                 }
             }
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, PrepareCartTypes());
 
             var model = await _mediator.Send(new GetShoppingCart()
             {

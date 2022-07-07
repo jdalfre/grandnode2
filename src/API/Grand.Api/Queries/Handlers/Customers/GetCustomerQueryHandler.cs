@@ -1,10 +1,8 @@
 ﻿using Grand.Api.DTOs.Customers;
 using Grand.Api.Extensions;
 using Grand.Api.Queries.Models.Customers;
-using Grand.Business.Customers.Interfaces;
+using Grand.Business.Core.Interfaces.Customers;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Queries.Handlers.Customers
 {

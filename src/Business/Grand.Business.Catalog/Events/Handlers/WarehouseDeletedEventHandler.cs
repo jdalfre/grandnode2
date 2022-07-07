@@ -3,8 +3,6 @@ using Grand.Domain.Catalog;
 using Grand.Domain.Shipping;
 using Grand.Infrastructure.Events;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Events.Handlers
 {
@@ -19,7 +17,7 @@ namespace Grand.Business.Catalog.Events.Handlers
 
         public async Task Handle(EntityDeleted<Warehouse> notification, CancellationToken cancellationToken)
         {
-            await _productRepository.PullFilter(string.Empty, x => x.ProductWarehouseInventory, z => z.WarehouseId, notification.Entity.Id, true);
+            await _productRepository.PullFilter(string.Empty, x => x.ProductWarehouseInventory, z => z.WarehouseId, notification.Entity.Id);
 
             await _productRepository.UpdateManyAsync(x => x.WarehouseId == notification.Entity.Id,
                 UpdateBuilder<Product>.Create().Set(x => x.WarehouseId, ""));

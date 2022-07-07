@@ -1,20 +1,20 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Seo;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Collections;
+using Grand.Business.Core.Interfaces.Catalog.Directory;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Seo;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Directory;
@@ -29,13 +29,9 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -73,6 +69,7 @@ namespace Grand.Web.Admin.Services
         private readonly IStockQuantityService _stockQuantityService;
         private readonly ILanguageService _languageService;
         private readonly IProductAttributeFormatter _productAttributeFormatter;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IServiceProvider _serviceProvider;
         private readonly CurrencySettings _currencySettings;
         private readonly MeasureSettings _measureSettings;
@@ -111,6 +108,7 @@ namespace Grand.Web.Admin.Services
                ILanguageService languageService,
                IProductAttributeFormatter productAttributeFormatter,
                IStockQuantityService stockQuantityService,
+               IHttpContextAccessor httpContextAccessor,
                IServiceProvider serviceProvider,
                CurrencySettings currencySettings,
                MeasureSettings measureSettings,
@@ -148,6 +146,7 @@ namespace Grand.Web.Admin.Services
             _stockQuantityService = stockQuantityService;
             _languageService = languageService;
             _productAttributeFormatter = productAttributeFormatter;
+            _httpContextAccessor = httpContextAccessor;
             _serviceProvider = serviceProvider;
             _currencySettings = currencySettings;
             _measureSettings = measureSettings;
@@ -941,7 +940,9 @@ namespace Grand.Web.Admin.Services
             await _productService.UpdateProduct(product);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewProduct", product.Id, _translationService.GetResource("ActivityLog.AddNewProduct"), product.Name);
+            _ = _customerActivityService.InsertActivity("AddNewProduct", product.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewProduct"), product.Name);
 
             return product;
         }
@@ -1038,7 +1039,9 @@ namespace Grand.Web.Admin.Services
                     await _downloadService.DeleteDownload(prevSampleDownload);
             }
             //activity log
-            await _customerActivityService.InsertActivity("EditProduct", product.Id, _translationService.GetResource("ActivityLog.EditProduct"), product.Name);
+            _ = _customerActivityService.InsertActivity("EditProduct", product.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditProduct"), product.Name);
             return product;
         }
         public virtual async Task DeleteProduct(Product product)
@@ -1060,7 +1063,9 @@ namespace Grand.Web.Admin.Services
                     await _downloadService.DeleteDownload(sampledownload);
             }
             //activity log
-            await _customerActivityService.InsertActivity("DeleteProduct", product.Id, _translationService.GetResource("ActivityLog.DeleteProduct"), product.Name);
+            _ = _customerActivityService.InsertActivity("DeleteProduct", product.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteProduct"), product.Name);
         }
         public virtual async Task DeleteSelected(IList<string> selectedIds)
         {
@@ -2692,7 +2697,9 @@ namespace Grand.Web.Admin.Services
                     PictureUrl = picture != null ? await _pictureService.GetPictureUrl(picture) : null,
                     AltAttribute = picture?.AltAttribute,
                     TitleAttribute = picture?.TitleAttribute,
-                    DisplayOrder = x.DisplayOrder
+                    DisplayOrder = x.DisplayOrder,
+                    Style = picture?.Style,
+                    ExtraField = picture?.ExtraField
                 };
                 items.Add(m);
             }
@@ -2710,6 +2717,8 @@ namespace Grand.Web.Admin.Services
                 AltAttribute = picture?.AltAttribute,
                 TitleAttribute = picture?.TitleAttribute,
                 DisplayOrder = productPicture.DisplayOrder,
+                Style = picture?.Style,
+                ExtraField = picture?.ExtraField
             };
 
             return (model, picture);
@@ -2755,9 +2764,11 @@ namespace Grand.Web.Admin.Services
             await _productService.UpdateProductPicture(productPicture, product.Id);
 
             //Update picture fields
-            await _pictureService.UpdatField(picture, x => x.AltAttribute, model.AltAttribute);
-            await _pictureService.UpdatField(picture, x => x.TitleAttribute, model.TitleAttribute);
-            await _pictureService.UpdatField(picture, x => x.Locales, model.Locales.ToTranslationProperty());
+            await _pictureService.UpdatePictureField(picture, x => x.AltAttribute, model.AltAttribute);
+            await _pictureService.UpdatePictureField(picture, x => x.TitleAttribute, model.TitleAttribute);
+            await _pictureService.UpdatePictureField(picture, x => x.Locales, model.Locales.ToTranslationProperty());
+            await _pictureService.UpdatePictureField(picture, x => x.Style, model.Style);
+            await _pictureService.UpdatePictureField(picture, x => x.ExtraField, model.ExtraField);
 
         }
         public virtual async Task DeleteProductPicture(ProductModel.ProductPictureModel model)

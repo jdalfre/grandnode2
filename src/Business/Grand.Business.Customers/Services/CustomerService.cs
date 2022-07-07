@@ -1,6 +1,6 @@
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Customers.Queries.Models;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Queries.Customers;
 using Grand.Domain;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -11,11 +11,7 @@ using Grand.Domain.Stores;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Customers.Services
 {
@@ -45,8 +41,6 @@ namespace Grand.Business.Customers.Services
         }
 
         #endregion
-
-        #region Methods
 
         #region Customers
 
@@ -108,22 +102,7 @@ namespace Grand.Business.Customers.Services
             };
             var query = await _mediator.Send(querymodel);
             return await PagedList<Customer>.Create(query, pageIndex, pageSize);
-        }
-
-        /// <summary>
-        /// Gets all customers by customer format (including deleted ones)
-        /// </summary>
-        /// <param name="passwordFormat">Password format</param>
-        /// <returns>Customers</returns>
-        public virtual async Task<IList<Customer>> GetAllCustomersByPasswordFormat(PasswordFormat passwordFormat)
-        {
-            var query = from p in _customerRepository.Table
-                        select p;
-
-            query = query.Where(c => c.PasswordFormatId == passwordFormat);
-            query = query.OrderByDescending(c => c.CreatedOnUtc);
-            return await Task.FromResult(query.ToList());
-        }
+        }       
 
         /// <summary>
         /// Gets online customers
@@ -341,7 +320,7 @@ namespace Grand.Business.Customers.Services
             Expression<Func<Customer, T>> expression, T value)
         {
             if (string.IsNullOrEmpty(customerId))
-                throw new ArgumentNullException("customerId");
+                throw new ArgumentNullException(nameof(customerId));
 
             await _customerRepository.UpdateField<T>(customerId, expression, value);
 
@@ -354,6 +333,9 @@ namespace Grand.Business.Customers.Services
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
+
+            if (customer.IsSystemAccount)
+                throw new GrandException($"System customer account ({(string.IsNullOrEmpty(customer.SystemName) ? customer.Email : customer.SystemName)}) could not be updated");
 
             var update = UpdateBuilder<Customer>.Create()
                 .Set(x => x.Email, string.IsNullOrEmpty(customer.Email) ? "" : customer.Email.ToLowerInvariant())
@@ -384,7 +366,7 @@ namespace Grand.Business.Customers.Services
                 throw new ArgumentNullException(nameof(customer));
 
             if (customer.IsSystemAccount)
-                throw new GrandException(string.Format("System customer account ({0}) could not be deleted", customer.SystemName));
+                throw new GrandException($"System customer account ({(string.IsNullOrEmpty(customer.SystemName) ? customer.Email : customer.SystemName)}) could not be deleted");
 
             customer.Deleted = true;
             customer.Email = $"DELETED_@{DateTime.UtcNow.Ticks}.COM";
@@ -431,32 +413,18 @@ namespace Grand.Business.Customers.Services
 
         }
 
-        /// <summary>
-        /// Updates the customer - password
-        /// </summary>
-        /// <param name="customer">Customer</param>
-        public virtual async Task UpdateCustomerPassword(Customer customer)
-        {
-            if (customer == null)
-                throw new ArgumentNullException(nameof(customer));
-
-            await UpdateCustomerField(customer.Id, x => x.Password, customer.Password);
-
-            //event notification
-            await _mediator.EntityUpdated(customer);
-
-        }
-
         public virtual async Task UpdateCustomerinAdminPanel(Customer customer)
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
 
+            if (customer.IsSystemAccount)
+                throw new GrandException($"System customer account ({(string.IsNullOrEmpty(customer.SystemName) ? customer.Email : customer.SystemName)}) could not be updated");
+
             var update = UpdateBuilder<Customer>.Create()
                 .Set(x => x.Active, customer.Active)
                 .Set(x => x.AdminComment, customer.AdminComment)
                 .Set(x => x.AffiliateId, customer.AffiliateId)
-                .Set(x => x.IsSystemAccount, customer.IsSystemAccount)
                 .Set(x => x.Active, customer.Active)
                 .Set(x => x.Email, string.IsNullOrEmpty(customer.Email) ? "" : customer.Email.ToLowerInvariant())
                 .Set(x => x.IsTaxExempt, customer.IsTaxExempt)
@@ -694,11 +662,6 @@ namespace Grand.Business.Customers.Services
             await _customerRepository.UpdateField(customerId, x => x.ShippingAddress, address);
         }
 
-        public virtual async Task RemoveShippingAddress(string customerId)
-        {
-            await _customerRepository.UpdateField(customerId, x => x.ShippingAddress, null);
-        }
-
         #endregion
 
         #region Customer Shopping Cart Item
@@ -756,9 +719,6 @@ namespace Grand.Business.Customers.Services
                 await UpdateCustomerField(customerId, x => x.LastUpdateWishListDateUtc, DateTime.UtcNow);
 
         }
-
-        #endregion
-
         #endregion
     }
 }

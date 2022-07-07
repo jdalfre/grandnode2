@@ -1,11 +1,9 @@
-﻿using Grand.Business.Catalog.Interfaces.Discounts;
+﻿using Grand.Business.Core.Interfaces.Catalog.Discounts;
 using Grand.Domain.Catalog;
 using Grand.Domain.Discounts;
 using Grand.Domain.Vendors;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Admin.Models.Discounts;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Interfaces
 {

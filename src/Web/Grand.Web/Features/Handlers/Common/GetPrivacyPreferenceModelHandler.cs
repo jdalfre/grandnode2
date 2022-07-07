@@ -1,25 +1,19 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Web.Features.Models.Common;
 using Grand.Web.Models.Common;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Common
 {
     public class GetPrivacyPreferenceModelHandler : IRequestHandler<GetPrivacyPreference, IList<PrivacyPreferenceModel>>
     {
-        private readonly IUserFieldService _userFieldService;
         private readonly ICookiePreference _cookiePreference;
 
-        public GetPrivacyPreferenceModelHandler(
-            IUserFieldService userFieldService,
-            ICookiePreference cookiePreference)
+        public GetPrivacyPreferenceModelHandler(ICookiePreference cookiePreference)
         {
-            _userFieldService = userFieldService;
             _cookiePreference = cookiePreference;
         }
 

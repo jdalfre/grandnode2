@@ -34,10 +34,14 @@ import { ImagePlugin } from 'bootstrap-vue'
 Vue.use(ImagePlugin)
 import { ToastPlugin } from 'bootstrap-vue'
 Vue.use(ToastPlugin)
+import { AlertPlugin } from 'bootstrap-vue'
+Vue.use(AlertPlugin)
 import { TabsPlugin } from 'bootstrap-vue'
 Vue.use(TabsPlugin)
 import { CollapsePlugin } from 'bootstrap-vue'
 Vue.use(CollapsePlugin)
+import { TooltipPlugin } from 'bootstrap-vue'
+Vue.use(TooltipPlugin)
 
 import {
     BIcon,
@@ -93,6 +97,10 @@ import {
     BIconSun,
     BIconFileEarmarkRichtext,
     BIconHammer,
+    BIconMic,
+    BIconMicMute,
+    BIconCheck,
+    BIconPencil,
 } from 'bootstrap-vue'
 Vue.component('BIcon', BIcon)
 Vue.component('BIconAspectRatio', BIconAspectRatio)
@@ -147,12 +155,16 @@ Vue.component('BIconMoon', BIconMoon)
 Vue.component('BIconSun', BIconSun)
 Vue.component('BIconFileEarmarkRichtext', BIconFileEarmarkRichtext)
 Vue.component('BIconHammer', BIconHammer)
+Vue.component('BIconMic', BIconMic)
+Vue.component('BIconMicMute', BIconMicMute)
+Vue.component('BIconCheck', BIconCheck)
+Vue.component('BIconPencil', BIconPencil)
 
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 Vue.component('ValidationProvider', ValidationProvider);
 Vue.component('ValidationObserver', ValidationObserver);
 
-import { extend, configure  } from 'vee-validate';
+import { extend, configure } from 'vee-validate';
 
 export const config = {
     classes: {
@@ -170,7 +182,7 @@ extend('confirmed', {
         return value === target;
     },
     message: (fieldName) => {
-        var text = vee_getMessage(fieldName, 'confirmed');
+        const text = vee_getMessage(fieldName, 'equalto');
         if (text) {
             return text;
         }
@@ -192,7 +204,7 @@ extend('email', {
         return true;
     },
     message: (fieldName) => {
-        var text = vee_getMessage(fieldName, 'email');
+        const text = vee_getMessage(fieldName, 'email');
         if (text) {
             return text;
         }
@@ -220,7 +232,7 @@ extend('required', {
     },
     computesRequired: true,
     message: (fieldName) => {
-        var text = vee_getMessage(fieldName, 'required');
+        const text = vee_getMessage(fieldName, 'required');
         if (text) {
             return text;
         }
@@ -228,18 +240,51 @@ extend('required', {
     }
 });
 
-//ValidationExtend('min', min);
-//ValidationExtend('confirmed', confirmed);
+extend('min', {
+    params: ['target'],
+    options: {
+        hasTarget: true
+    },
+    validate: function (value, ref) {
+        const minVal = ref.target;
+        const length = value.length;
+
+        if (!value) {
+            return true;
+        }
+        if (length < minVal) {
+            return false;
+        }
+
+        return true;
+    },
+    message: (fieldName) => {
+        const text = vee_getMessage(fieldName, 'min');
+        if (text) {
+            return text;
+        }
+        return 'This ' + fieldName + ' should have at least  characters.'
+    }
+});
+
+extend("exact_length", {
+    params: ["length", "message"],
+    validate(val, { length, message }) {
+        if (val.length < 1)
+            return message ?? "Must have " + length + " items";
+
+        return true;
+    }
+});
 
 export function vee_getMessage(field, rule) {
-    var element = document.getElementsByName(field);
+    const element = document.getElementsByName(field);
     if (element && element[0]) {
-        var text = element[0].getAttribute('data-val-' + rule);
+        const text = element[0].getAttribute('data-val-' + rule);
         if (text)
             return text;
     }
 }
-// Override the default message.
 
 import VueGallerySlideshow from 'vue-gallery-slideshow'
 

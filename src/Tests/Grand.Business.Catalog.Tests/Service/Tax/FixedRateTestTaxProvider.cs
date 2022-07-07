@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Catalog.Utilities;
+﻿using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Utilities.Catalog;
 using Grand.Infrastructure.Plugins;
 using Microsoft.AspNetCore.Routing;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Tests.Service.Tax
 {

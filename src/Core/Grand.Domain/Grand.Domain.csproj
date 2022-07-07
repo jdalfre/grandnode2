@@ -1,25 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Copyright>Copyright © UNIT-SOFT Sp. z o.o.</Copyright>
-    <Company>UNIT-SOFT Sp. z o.o.</Company>
-    <Authors>UNIT-SOFT Sp. z o.o.</Authors>
-    <Product>grandnode</Product>
-    <PackageProjectUrl>https://grandnode.com/</PackageProjectUrl>
-    <TieredCompilation>true</TieredCompilation>
-  </PropertyGroup>
-
-<ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver.Core" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.1" />
-    <PackageReference Include="DotLiquid" Version="2.2.548" />
+  <Import Project="..\..\Build\Grand.Common.props" />
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.12" />
+    <PackageReference Include="MongoDB.Bson" Version="2.16.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.16.1" />
+    <PackageReference Include="MongoDB.Driver.Core" Version="2.16.1" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.16.1" />
+    <PackageReference Include="DotLiquid" Version="2.2.656" />
   </ItemGroup>
 
-<ItemGroup>
-  <ProjectReference Include="..\Grand.SharedKernel\Grand.SharedKernel.csproj" />
-</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grand.SharedKernel\Grand.SharedKernel.csproj" />
+  </ItemGroup>
 
 </Project>

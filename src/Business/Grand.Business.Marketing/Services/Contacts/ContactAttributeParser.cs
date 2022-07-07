@@ -1,7 +1,7 @@
-using Grand.Business.Common.Extensions;
+using Grand.Business.Core.Extensions;
 using Grand.Business.Marketing.Extensions;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Storage.Interfaces;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -9,12 +9,7 @@ using Grand.Domain.Localization;
 using Grand.Domain.Messages;
 using Grand.Infrastructure;
 using Grand.SharedKernel.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Services.Contacts
 {

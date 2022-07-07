@@ -1,10 +1,8 @@
-﻿using Grand.Business.Catalog.Utilities;
+﻿using Grand.Business.Core.Utilities.Catalog;
 using Grand.Domain.Catalog;
 using Grand.Domain.Tax;
 using Grand.Infrastructure.Models;
 using Grand.Web.Models.Media;
-using System;
-using System.Collections.Generic;
 
 namespace Grand.Web.Models.Catalog
 {

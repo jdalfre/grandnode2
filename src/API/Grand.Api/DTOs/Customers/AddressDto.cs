@@ -1,5 +1,4 @@
 ﻿using Grand.Api.Models;
-using System;
 
 namespace Grand.Api.DTOs.Customers
 {
@@ -18,7 +17,8 @@ namespace Grand.Api.DTOs.Customers
         public string ZipPostalCode { get; set; }
         public string PhoneNumber { get; set; }
         public string FaxNumber { get; set; }
-        public string CustomAttributes { get; set; }
+        public string Note { get; set; }
+        public int AddressType { get; set; }
         public DateTime CreatedOnUtc { get; set; }
 
     }

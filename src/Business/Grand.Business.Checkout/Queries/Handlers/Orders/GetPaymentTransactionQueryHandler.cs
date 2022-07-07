@@ -1,10 +1,7 @@
-﻿using Grand.Business.Checkout.Queries.Models.Orders;
+﻿using Grand.Business.Core.Queries.Checkout.Orders;
 using Grand.Domain.Data;
 using Grand.Domain.Payments;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Queries.Handlers.Orders
 {
@@ -26,10 +23,10 @@ namespace Grand.Business.Checkout.Queries.Handlers.Orders
                 query = query.Where(rr => request.StoreId == rr.StoreId);
 
             if (!string.IsNullOrEmpty(request.CustomerEmail))
-                query = query.Where(rr => request.CustomerEmail == rr.CustomerEmail.ToLowerInvariant());
+                query = query.Where(rr => rr.CustomerEmail == request.CustomerEmail.ToLowerInvariant());
 
             if (request.OrderGuid.HasValue)
-                query = query.Where(rr => request.OrderGuid == request.OrderGuid.Value);
+                query = query.Where(rr => rr.OrderGuid == request.OrderGuid.Value);
 
             if (request.Ts.HasValue)
                 query = query.Where(rr => rr.TransactionStatus == request.Ts.Value);

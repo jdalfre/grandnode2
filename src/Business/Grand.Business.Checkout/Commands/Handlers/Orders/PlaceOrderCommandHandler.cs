@@ -1,26 +1,25 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Catalog.Utilities;
-using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Business.Checkout.Events.Orders;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Utilities.Catalog;
+using Grand.Business.Core.Commands.Checkout.Orders;
+using Grand.Business.Core.Events.Checkout.Orders;
 using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.GiftVouchers;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Queries.Models.Orders;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Queries.Checkout.Orders;
 using Grand.Business.Checkout.Services.Orders;
-using Grand.Business.Checkout.Utilities;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Pdf;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
+using Grand.Business.Core.Utilities.Checkout;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Pdf;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -35,12 +34,6 @@ using Grand.SharedKernel;
 using Grand.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Commands.Handlers.Orders
 {
@@ -110,7 +103,6 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
             ICurrencyService currencyService,
             IAffiliateService affiliateService,
             IMediator mediator,
-            IPdfService pdfService,
             IProductReservationService productReservationService,
             IAuctionService auctionService,
             ICountryService countryService,
@@ -224,7 +216,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
             }
             catch (Exception exc)
             {
-                _logger.Error(exc.Message, exc);
+                _ = _logger.Error(exc.Message, exc);
                 result.AddError(exc.Message);
             }
 
@@ -241,7 +233,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
             {
                 //log it
                 string logError = string.Format("Error while placing order. {0}", error);
-                _logger.Error(logError);
+                _ = _logger.Error(logError);
             }
 
             #endregion
@@ -401,8 +393,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
 
         protected virtual async Task<PlaceOrderContainter> PreparePlaceOrderDetails()
         {
-            var details = new PlaceOrderContainter
-            {
+            var details = new PlaceOrderContainter {
                 //customer
                 Customer = _workContext.CurrentCustomer
             };
@@ -491,6 +482,13 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                         warningsSb.Append(";");
                     }
                     throw new GrandException(warningsSb.ToString());
+                }
+                if (product.IsRecurring)
+                {
+                    details.IsRecurring = true;
+                    details.RecurringCycleLength = product.RecurringCycleLength;
+                    details.RecurringCyclePeriodId = product.RecurringCyclePeriodId;
+                    details.RecurringTotalCycles = product.RecurringTotalCycles;
                 }
             }
 
@@ -614,8 +612,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
             //tax rates
             foreach (var kvp in taxRates)
             {
-                details.Taxes.Add(new OrderTax()
-                {
+                details.Taxes.Add(new OrderTax() {
                     Percent = Math.Round(kvp.Key, 2),
                     Amount = kvp.Value
                 });
@@ -697,8 +694,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 Math.Round((commissionRate.Value * scSubTotal / 100), 2) : 0;
 
             //save order item
-            var orderItem = new OrderItem
-            {
+            var orderItem = new OrderItem {
                 OrderItemGuid = Guid.NewGuid(),
                 ProductId = sc.ProductId,
                 Sku = product.FormatSku(sc.Attributes, _productAttributeParser),
@@ -768,17 +764,16 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
         protected virtual async Task GenerateGiftVoucher(PlaceOrderContainter details, ShoppingCartItem sc, Order order, OrderItem orderItem, Product product)
         {
             _productAttributeParser.GetGiftVoucherAttribute(sc.Attributes,
-                        out string giftVoucherRecipientName, out string giftVoucherRecipientEmail,
-                        out string giftVoucherSenderName, out string giftVoucherSenderEmail, out string giftVoucherMessage);
+                        out var giftVoucherRecipientName, out var giftVoucherRecipientEmail,
+                        out var giftVoucherSenderName, out var giftVoucherSenderEmail, out var giftVoucherMessage);
 
-            for (int i = 0; i < sc.Quantity; i++)
+            for (var i = 0; i < sc.Quantity; i++)
             {
                 var amount = orderItem.UnitPriceInclTax;
                 if (product.OverGiftAmount.HasValue)
                     amount = await _currencyService.ConvertFromPrimaryStoreCurrency(product.OverGiftAmount.Value, details.Currency);
 
-                var gc = new GiftVoucher
-                {
+                var gc = new GiftVoucher {
                     GiftVoucherTypeId = product.GiftVoucherTypeId,
                     PurchasedWithOrderItem = orderItem,
                     Amount = amount,
@@ -791,6 +786,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                     SenderEmail = giftVoucherSenderEmail,
                     Message = giftVoucherMessage,
                     IsRecipientNotified = false,
+                    StoreId = _orderSettings.GiftVouchers_Assign_StoreId ? _workContext.CurrentStore.Id : string.Empty,
                     CreatedOnUtc = DateTime.UtcNow
                 };
                 await _giftVoucherService.InsertGiftVoucher(gc);
@@ -894,8 +890,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 await _auctionService.UpdateAuctionEnded(product, true, true);
                 await _auctionService.UpdateHighestBid(product, product.Price, order.CustomerId);
                 await _messageProviderService.SendAuctionEndedBinCustomerMessage(product, order.CustomerId, order.CustomerLanguageId, order.StoreId);
-                await _auctionService.InsertBid(new Bid()
-                {
+                await _auctionService.InsertBid(new Bid() {
                     CustomerId = order.CustomerId,
                     OrderId = order.Id,
                     Amount = product.Price,
@@ -928,8 +923,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
         {
             foreach (var discount in details.AppliedDiscounts)
             {
-                var duh = new DiscountUsageHistory
-                {
+                var duh = new DiscountUsageHistory {
                     DiscountId = discount.DiscountId,
                     CouponCode = discount.CouponCode,
                     OrderId = order.Id,
@@ -945,8 +939,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
             foreach (var agc in details.AppliedGiftVouchers)
             {
                 double amountUsed = agc.AmountCanBeUsed;
-                var gcuh = new GiftVoucherUsageHistory
-                {
+                var gcuh = new GiftVoucherUsageHistory {
                     GiftVoucherId = agc.GiftVoucher.Id,
                     UsedWithOrderId = order.Id,
                     UsedValue = amountUsed,
@@ -975,8 +968,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 paymentStatus = PaymentStatus.PartiallyPaid;
 
 
-            var order = new Order
-            {
+            var order = new Order {
                 StoreId = paymentTransaction.StoreId,
                 OrderGuid = paymentTransaction.OrderGuid,
                 Code = paymentTransaction.OrderCode,
@@ -1030,6 +1022,10 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 RedeemedLoyaltyPoints = details.RedeemedLoyaltyPoints,
                 RedeemedLoyaltyPointsAmount = details.RedeemedLoyaltyPointsAmount,
                 LoyaltyPointsWereAdded = details.RedeemedLoyaltyPoints > 0,
+                IsRecurring = details.IsRecurring,
+                RecurringCycleLength = details.RecurringCycleLength,
+                RecurringCyclePeriodId = details.RecurringCyclePeriodId,
+                RecurringTotalCycles = details.RecurringTotalCycles,
                 CreatedOnUtc = DateTime.UtcNow,
             };
 
@@ -1125,8 +1121,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 if (originalCustomerIfImpersonated != null)
                 {
                     //this order is placed by a store administrator impersonating a customer
-                    await orderService.InsertOrderNote(new OrderNote
-                    {
+                    await orderService.InsertOrderNote(new OrderNote {
                         Note = string.Format("Order placed by a store owner ('{0}'. ID = {1}) impersonating the customer.",
                             originalCustomerIfImpersonated.Email, originalCustomerIfImpersonated.Id),
                         DisplayToCustomer = false,
@@ -1136,8 +1131,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 }
                 else
                 {
-                    await orderService.InsertOrderNote(new OrderNote
-                    {
+                    await orderService.InsertOrderNote(new OrderNote {
                         Note = "Order placed",
                         DisplayToCustomer = false,
                         CreatedOnUtc = DateTime.UtcNow,
@@ -1148,7 +1142,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
 
                 //send email notifications
                 await messageProviderService.SendOrderPlacedStoreOwnerMessage(order, customer, languageSettings.DefaultAdminLanguageId);
-                
+
                 string orderPlacedAttachmentFilePath = string.Empty, orderPlacedAttachmentFileName = string.Empty;
                 var orderPlacedAttachments = new List<string>();
 
@@ -1163,7 +1157,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error($"Error - order placed attachment file {order.OrderNumber}", ex);
+                    _ = _logger.Error($"Error - order placed attachment file {order.OrderNumber}", ex);
                 }
 
                 await messageProviderService
@@ -1174,7 +1168,7 @@ namespace Grand.Business.Checkout.Commands.Handlers.Orders
                     var vendors = await mediator.Send(new GetVendorsInOrderQuery() { Order = order });
                     foreach (var vendor in vendors)
                     {
-                        await messageProviderService.SendOrderPlacedVendorMessage(order, customer, vendor, languageSettings.DefaultAdminLanguageId);                        
+                        await messageProviderService.SendOrderPlacedVendorMessage(order, customer, vendor, languageSettings.DefaultAdminLanguageId);
                     }
                 }
             }

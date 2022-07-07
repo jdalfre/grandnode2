@@ -1,7 +1,7 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Marketing.Interfaces.Newsletters;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
 using Grand.Web.Common.Security.Captcha;
 using Grand.Domain.Customers;
 using Grand.Domain.Tax;
@@ -10,9 +10,6 @@ using Grand.Web.Models.Customer;
 using Grand.Web.Models.Newsletter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Customers
 {

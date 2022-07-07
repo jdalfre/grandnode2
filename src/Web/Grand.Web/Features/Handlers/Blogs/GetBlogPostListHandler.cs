@@ -2,20 +2,15 @@
 using Grand.Domain;
 using Grand.Domain.Blogs;
 using Grand.Domain.Media;
-using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.Common.Interfaces.Seo;
+using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Web.Features.Models.Blogs;
 using Grand.Web.Models.Blogs;
 using Grand.Web.Models.Media;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Grand.Business.Common.Extensions;
+using Grand.Business.Core.Extensions;
 
 namespace Grand.Web.Features.Handlers.Blogs
 {
@@ -132,6 +127,8 @@ namespace Grand.Web.Features.Handlers.Blogs
                     Id = blogPost.PictureId,
                     FullSizeImageUrl = await _pictureService.GetPictureUrl(blogPost.PictureId),
                     ImageUrl = await _pictureService.GetPictureUrl(blogPost.PictureId, _mediaSettings.BlogThumbPictureSize),
+                    Style = picture?.Style,
+                    ExtraField = picture?.ExtraField
                 };
 
                 //"title" attribute

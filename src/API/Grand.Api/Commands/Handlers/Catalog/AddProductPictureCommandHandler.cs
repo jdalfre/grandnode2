@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {
@@ -22,22 +20,18 @@ namespace Grand.Api.Commands.Models.Catalog
 
         public async Task<bool> Handle(AddProductPictureCommand request, CancellationToken cancellationToken)
         {
-            var picture = await _pictureService.GetPictureById(request.Model.PictureId);
-            if (picture != null)
-            {
-                await _pictureService.UpdatePicture(picture.Id, await _pictureService.LoadPictureBinary(picture),
-                picture.MimeType,
-                picture.SeoFilename,
-                request.Model.AltAttribute,
-                request.Model.TitleAttribute);
+            var product = await _productService.GetProductById(request.Product.Id);
+            if (product == null)
+                return false;
 
-                await _productService.InsertProductPicture(new ProductPicture
-                {
-                    PictureId = request.Model.PictureId,
-                    DisplayOrder = request.Model.DisplayOrder,
-                }, request.Product.Id);
-                await _pictureService.SetSeoFilename(picture, _pictureService.GetPictureSeName(request.Product.Name));
-            }
+            var picture = await _pictureService.GetPictureById(request.Model.PictureId);
+            if (picture == null)
+                return false;
+
+            await _productService.InsertProductPicture(new ProductPicture {
+                PictureId = picture.Id,
+                DisplayOrder = request.Model.DisplayOrder,
+            }, product.Id);
 
             return true;
         }

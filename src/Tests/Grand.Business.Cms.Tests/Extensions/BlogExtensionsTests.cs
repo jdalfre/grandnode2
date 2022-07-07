@@ -1,9 +1,6 @@
-﻿using Grand.Business.Cms.Extensions;
+﻿using Grand.Business.Core.Extensions;
 using Grand.Domain.Blogs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Grand.Business.Cms.Tests.Extensions
 {

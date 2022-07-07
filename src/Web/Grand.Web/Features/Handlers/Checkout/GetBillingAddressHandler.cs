@@ -1,36 +1,30 @@
-﻿using Grand.Business.Checkout.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Interfaces.Stores;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Common;
-using Grand.Domain.Shipping;
 using Grand.Web.Features.Models.Checkout;
 using Grand.Web.Features.Models.Common;
 using Grand.Web.Models.Checkout;
 using MediatR;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Checkout
 {
     public class GetBillingAddressHandler : IRequestHandler<GetBillingAddress, CheckoutBillingAddressModel>
     {
-        private readonly ShippingSettings _shippingSettings;
         private readonly ICountryService _countryService;
         private readonly IAclService _aclService;
         private readonly IMediator _mediator;
+        private readonly AddressSettings _addressSettings;
 
-        public GetBillingAddressHandler(ShippingSettings shippingSettings,
+        public GetBillingAddressHandler(
             ICountryService countryService,
             IAclService aclService,
-            IMediator mediator)
+            IMediator mediator,
+            AddressSettings addressSettings)
         {
-            _shippingSettings = shippingSettings;
             _countryService = countryService;
             _aclService = aclService;
             _mediator = mediator;
+            _addressSettings = addressSettings;
         }
 
         public async Task<CheckoutBillingAddressModel> Handle(GetBillingAddress request, CancellationToken cancellationToken)
@@ -38,7 +32,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             var model = new CheckoutBillingAddressModel();
             //existing addresses
             var addresses = new List<Address>();
-            foreach (var item in request.Customer.Addresses.Where(x=>x.AddressType == AddressType.Any || x.AddressType == AddressType.Billing))
+            foreach (var item in request.Customer.Addresses.Where(x => x.AddressType == AddressType.Any || x.AddressType == AddressType.Billing))
             {
                 if (string.IsNullOrEmpty(item.CountryId))
                 {
@@ -55,8 +49,7 @@ namespace Grand.Web.Features.Handlers.Checkout
 
             foreach (var address in addresses)
             {
-                var addressModel = await _mediator.Send(new GetAddressModel()
-                {
+                var addressModel = await _mediator.Send(new GetAddressModel() {
                     Language = request.Language,
                     Store = request.Store,
                     Model = null,
@@ -70,8 +63,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             model.NewAddress.CountryId = request.SelectedCountryId;
             var countries = await _countryService.GetAllCountriesForBilling(request.Language.Id, request.Store.Id);
 
-            model.NewAddress = await _mediator.Send(new GetAddressModel()
-            {
+            model.NewAddress = await _mediator.Send(new GetAddressModel() {
                 Language = request.Language,
                 Store = request.Store,
                 Model = model.NewAddress,
@@ -82,6 +74,8 @@ namespace Grand.Web.Features.Handlers.Checkout
                 Customer = request.Customer,
                 OverrideAttributes = request.OverrideAttributes
             });
+            model.NewAddress.HideAddressType = true;
+            model.NewAddress.AddressTypeId = _addressSettings.AddressTypeEnabled ? (int)AddressType.Billing : (int)AddressType.Any;
 
             return model;
         }

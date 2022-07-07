@@ -1,13 +1,11 @@
 ﻿using Grand.Api.Commands.Models.Catalog;
 using Grand.Api.DTOs.Catalog;
 using Grand.Api.Extensions;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Infrastructure;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Handlers.Catalog
 {
@@ -16,15 +14,18 @@ namespace Grand.Api.Commands.Handlers.Catalog
         private readonly ISpecificationAttributeService _specificationAttributeService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly ITranslationService _translationService;
+        private readonly IWorkContext _workContext;
 
         public UpdateSpecificationAttributeCommandHandler(
             ISpecificationAttributeService specificationAttributeService,
             ICustomerActivityService customerActivityService,
-            ITranslationService translationService)
+            ITranslationService translationService,
+            IWorkContext workContext)
         {
             _specificationAttributeService = specificationAttributeService;
             _customerActivityService = customerActivityService;
             _translationService = translationService;
+            _workContext = workContext;
         }
 
         public async Task<SpecificationAttributeDto> Handle(UpdateSpecificationAttributeCommand request, CancellationToken cancellationToken)
@@ -41,8 +42,9 @@ namespace Grand.Api.Commands.Handlers.Catalog
             await _specificationAttributeService.UpdateSpecificationAttribute(specificationAttribute);
 
             //activity log
-            await _customerActivityService.InsertActivity("EditSpecAttribute",
-                specificationAttribute.Id, _translationService.GetResource("ActivityLog.EditSpecAttribute"), specificationAttribute.Name);
+            _ = _customerActivityService.InsertActivity("EditSpecAttribute",
+                specificationAttribute.Id, _workContext.CurrentCustomer, "",
+                _translationService.GetResource("ActivityLog.EditSpecAttribute"), specificationAttribute.Name);
 
             return specificationAttribute.ToModel();
         }

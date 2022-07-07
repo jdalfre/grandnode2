@@ -1,5 +1,5 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Common.Services.Security;
+using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Permissions;
@@ -7,9 +7,6 @@ using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Common.Tests.Services.Security
 {
@@ -31,8 +28,8 @@ namespace Grand.Business.Common.Tests.Services.Security
             _workContextMock = new Mock<IWorkContext>();
             _groupServiceMock = new Mock<IGroupService>();
             _cacheMock = new Mock<ICacheBase>();
-            _service = new PermissionService(_permissionRepositoryMock.Object,_permissionActionRepositoryMock.Object,_workContextMock.Object,
-                _groupServiceMock.Object,_cacheMock.Object);
+            _service = new PermissionService(_permissionRepositoryMock.Object, _permissionActionRepositoryMock.Object, _workContextMock.Object,
+                _groupServiceMock.Object, _cacheMock.Object);
         }
 
         [TestMethod]
@@ -43,7 +40,7 @@ namespace Grand.Business.Common.Tests.Services.Security
             fakeCustomer.Groups.Add("group1");
             _workContextMock.Setup(c => c.CurrentCustomer).Returns(fakeCustomer);
             _cacheMock.Setup(c => c.GetAsync<bool>(It.IsAny<string>(), It.IsAny<Func<Task<bool>>>())).Returns(Task.FromResult(true));
-            _groupServiceMock.Setup(c => c.GetAllByIds(It.IsAny<string[]>())).Returns(Task.FromResult<IList<CustomerGroup>>(new List<CustomerGroup>() {new CustomerGroup() }));
+            _groupServiceMock.Setup(c => c.GetAllByIds(It.IsAny<string[]>())).Returns(Task.FromResult<IList<CustomerGroup>>(new List<CustomerGroup>() { new CustomerGroup() }));
             Assert.IsTrue(await _service.Authorize(permission));
         }
 
@@ -63,7 +60,7 @@ namespace Grand.Business.Common.Tests.Services.Security
         public async Task InsertPermission_InovokeMethods()
         {
             await _service.InsertPermission(new Permission());
-            _permissionRepositoryMock.Verify(c => c.InsertAsync(It.IsAny<Permission>()),Times.Once);
+            _permissionRepositoryMock.Verify(c => c.InsertAsync(It.IsAny<Permission>()), Times.Once);
             _cacheMock.Verify(c => c.RemoveByPrefix(It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
         }
 

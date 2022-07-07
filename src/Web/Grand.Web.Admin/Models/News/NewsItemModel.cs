@@ -2,8 +2,6 @@
 using Grand.Infrastructure.Models;
 using Grand.Web.Common.Link;
 using Grand.Web.Common.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Grand.Web.Admin.Models.News
@@ -74,7 +72,7 @@ namespace Grand.Web.Admin.Models.News
 
     }
 
-    public partial class NewsLocalizedModel : ILocalizedModelLocal
+    public partial class NewsLocalizedModel : ILocalizedModelLocal, ISlugModelLocal
     {
         public string LanguageId { get; set; }
 

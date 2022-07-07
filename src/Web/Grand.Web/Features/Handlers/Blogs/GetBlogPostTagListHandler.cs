@@ -1,14 +1,11 @@
 ﻿using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Grand.Domain.Blogs;
-using Grand.Business.Cms.Interfaces;
+using Grand.Business.Core.Interfaces.Cms;
 using Grand.Web.Features.Models.Blogs;
 using Grand.Web.Events.Cache;
 using Grand.Web.Models.Blogs;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Blogs
 {

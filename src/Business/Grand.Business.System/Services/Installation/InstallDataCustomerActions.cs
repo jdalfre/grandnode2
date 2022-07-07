@@ -1,7 +1,5 @@
-﻿using Grand.Business.System.Interfaces.Installation;
+﻿using Grand.Business.Core.Interfaces.System.Installation;
 using Grand.Domain.Customers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.Installation
 {

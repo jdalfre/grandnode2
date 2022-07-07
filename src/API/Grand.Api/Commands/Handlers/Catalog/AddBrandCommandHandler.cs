@@ -1,15 +1,13 @@
 ﻿using Grand.Api.DTOs.Catalog;
 using Grand.Api.Extensions;
-using Grand.Business.Catalog.Interfaces.Brands;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Seo;
+using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Seo;
 using Grand.Domain.Seo;
+using Grand.Infrastructure;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {
@@ -20,6 +18,7 @@ namespace Grand.Api.Commands.Models.Catalog
         private readonly ILanguageService _languageService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly ITranslationService _translationService;
+        private readonly IWorkContext _workContext;
         private readonly SeoSettings _seoSettings;
 
         public AddBrandCommandHandler(
@@ -28,6 +27,7 @@ namespace Grand.Api.Commands.Models.Catalog
             ILanguageService languageService,
             ICustomerActivityService customerActivityService,
             ITranslationService translationService,
+            IWorkContext workContext,
             SeoSettings seoSettings)
         {
             _brandService = brandService;
@@ -35,6 +35,7 @@ namespace Grand.Api.Commands.Models.Catalog
             _languageService = languageService;
             _customerActivityService = customerActivityService;
             _translationService = translationService;
+            _workContext = workContext;
             _seoSettings = seoSettings;
         }
 
@@ -50,7 +51,7 @@ namespace Grand.Api.Commands.Models.Catalog
             await _slugService.SaveSlug(brand, request.Model.SeName, "");
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewBrand", brand.Id, _translationService.GetResource("ActivityLog.AddNewBrand"), brand.Name);
+            _ = _customerActivityService.InsertActivity("AddNewBrand", brand.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.AddNewBrand"), brand.Name);
 
             return brand.ToModel();
         }

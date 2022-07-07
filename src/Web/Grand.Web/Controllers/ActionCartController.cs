@@ -1,15 +1,15 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Services.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Checkout;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Orders;
 using Grand.Infrastructure;
+using Grand.Web.Common.Filters;
 using Grand.Web.Extensions;
 using Grand.Web.Features.Models.Products;
 using Grand.Web.Features.Models.ShoppingCart;
@@ -17,14 +17,11 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Controllers
 {
+    [DenySystemAccount]
     public partial class ActionCartController : BasePublicController
     {
         #region Fields
@@ -152,7 +149,7 @@ namespace Grand.Web.Controllers
 
             string warehouseId = GetWarehouse(product);
 
-            var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, cartType);
+            var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, cartType);
 
             if (cartType != ShoppingCartType.Wishlist)
             {
@@ -221,7 +218,9 @@ namespace Grand.Web.Controllers
                 case ShoppingCartType.Wishlist:
                     {
                         //activity log
-                        await _customerActivityService.InsertActivity("PublicStore.AddToWishlist", product.Id, _translationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
+                        _ = _customerActivityService.InsertActivity("PublicStore.AddToWishlist", product.Id,
+                            _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                            _translationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
 
                         if (_shoppingCartSettings.DisplayWishlistAfterAddingProduct || forceredirection)
                         {
@@ -233,7 +232,7 @@ namespace Grand.Web.Controllers
                         }
 
                         //display notification message and update appropriate blocks
-                        var qty = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.Wishlist).Sum(x => x.Quantity);
+                        var qty = (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.Wishlist)).Sum(x => x.Quantity);
                         var updatetopwishlistsectionhtml = string.Format(_translationService.GetResource("Wishlist.HeaderQuantity"), qty);
 
                         return Json(new
@@ -249,7 +248,9 @@ namespace Grand.Web.Controllers
                 default:
                     {
                         //activity log
-                        await _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart", product.Id, _translationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
+                        _ = _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart", product.Id,
+                            _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                            _translationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
 
                         if (_shoppingCartSettings.DisplayCartAfterAddingProduct || forceredirection)
                         {
@@ -268,7 +269,7 @@ namespace Grand.Web.Controllers
                             shoppingCartTypes.Add(ShoppingCartType.OnHoldCart);
 
                         var updatetopcartsectionhtml = string.Format(_translationService.GetResource("ShoppingCart.HeaderQuantity"),
-                            _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray())
+                            (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray()))
                                 .Sum(x => x.Quantity));
 
                         var miniShoppingCartmodel = _shoppingCartSettings.MiniShoppingCartEnabled ? await _mediator.Send(new GetMiniShoppingCart() {
@@ -362,6 +363,7 @@ namespace Grand.Web.Controllers
 
             return quantity;
         }
+
         [HttpPost]
         public virtual async Task<IActionResult> AddProductDetails(string productId, int shoppingCartTypeId, IFormCollection form)
         {
@@ -489,7 +491,7 @@ namespace Grand.Web.Controllers
                 });
 
             addToCartWarnings.AddRange(warnings);
-            
+
             #region Return result
 
             if (addToCartWarnings.Any())
@@ -528,7 +530,9 @@ namespace Grand.Web.Controllers
                 case ShoppingCartType.Wishlist:
                     {
                         //activity log
-                        await _customerActivityService.InsertActivity("PublicStore.AddToWishlist", product.Id, _translationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
+                        _ = _customerActivityService.InsertActivity("PublicStore.AddToWishlist", product.Id,
+                            _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                            _translationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
 
                         if (_shoppingCartSettings.DisplayWishlistAfterAddingProduct)
                         {
@@ -540,7 +544,7 @@ namespace Grand.Web.Controllers
                         }
 
                         //display notification message and update appropriate blocks
-                        var qty = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.Wishlist).Sum(x => x.Quantity);
+                        var qty = (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.Wishlist)).Sum(x => x.Quantity);
                         var updatetopwishlistsectionhtml = string.Format(_translationService.GetResource("Wishlist.HeaderQuantity"), qty);
 
                         return Json(new
@@ -556,7 +560,9 @@ namespace Grand.Web.Controllers
                 default:
                     {
                         //activity log
-                        await _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart", product.Id, _translationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
+                        _ = _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart", product.Id,
+                            _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                            _translationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
 
                         if (_shoppingCartSettings.DisplayCartAfterAddingProduct)
                         {
@@ -575,7 +581,7 @@ namespace Grand.Web.Controllers
                             shoppingCartTypes.Add(ShoppingCartType.OnHoldCart);
 
                         var updatetopcartsectionhtml = string.Format(_translationService.GetResource("ShoppingCart.HeaderQuantity"),
-                            _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray())
+                            (await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, shoppingCartTypes.ToArray()))
                                 .Sum(x => x.Quantity));
 
                         var miniShoppingCartmodel = _shoppingCartSettings.MiniShoppingCartEnabled ? await _mediator.Send(new GetMiniShoppingCart() {
@@ -685,7 +691,9 @@ namespace Grand.Web.Controllers
             await auctionService.NewBid(customer, product, _workContext.CurrentStore, _workContext.WorkingLanguage, warehouseId, bid);
 
             //activity log
-            await _customerActivityService.InsertActivity("PublicStore.AddNewBid", product.Id, _translationService.GetResource("ActivityLog.PublicStore.AddToBid"), product.Name);
+            _ = _customerActivityService.InsertActivity("PublicStore.AddNewBid", product.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.PublicStore.AddToBid"), product.Name);
 
             var addtoCartModel = await _mediator.Send(new GetAddToCart() {
                 Product = product,
@@ -705,8 +713,6 @@ namespace Grand.Web.Controllers
                 model = addtoCartModel
             });
         }
-
-
 
         public virtual async Task<IActionResult> GetItemCart(string shoppingcartId)
         {

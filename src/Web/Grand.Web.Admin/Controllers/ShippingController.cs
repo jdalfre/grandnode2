@@ -1,11 +1,10 @@
-﻿using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Configuration;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Interfaces.Common.Configuration;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Models;
@@ -13,19 +12,14 @@ using Grand.Web.Common.Security.Authorization;
 using Grand.Domain.Directory;
 using Grand.Domain.Shipping;
 using Grand.Infrastructure;
-using Grand.Infrastructure.Plugins;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Models.Directory;
 using Grand.Web.Admin.Models.Shipping;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Grand.Web.Admin.Models.Common;
-using Grand.Business.Common.Interfaces.Logging;
+using Grand.Business.Core.Interfaces.Common.Logging;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -149,9 +143,11 @@ namespace Grand.Web.Admin.Controllers
         public IActionResult Providers() => View();
 
         [HttpPost]
-        public IActionResult Providers(DataSourceRequest command)
+        public async Task<IActionResult> Providers(DataSourceRequest command)
         {
-            var _shippingProviderSettings = _settingService.LoadSetting<ShippingProviderSettings>();
+            var storeScope = await GetActiveStore();
+
+            var _shippingProviderSettings = _settingService.LoadSetting<ShippingProviderSettings>(storeScope);
             var shippingProvidersModel = new List<ShippingRateComputationMethodModel>();
             var shippingProviders = _shippingService.LoadAllShippingRateCalculationProviders();
             foreach (var shippingProvider in shippingProviders)
@@ -173,7 +169,9 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> ProviderUpdate(ShippingRateComputationMethodModel model)
         {
-            var _shippingProviderSettings = _settingService.LoadSetting<ShippingProviderSettings>();
+            var storeScope = await GetActiveStore();
+
+            var _shippingProviderSettings = _settingService.LoadSetting<ShippingProviderSettings>(storeScope);
 
             var srcm = _shippingService.LoadShippingRateCalculationProviderBySystemName(model.SystemName);
             if (srcm.IsShippingRateMethodActive(_shippingProviderSettings))
@@ -182,7 +180,7 @@ namespace Grand.Web.Admin.Controllers
                 {
                     //mark as disabled
                     _shippingProviderSettings.ActiveSystemNames.Remove(srcm.SystemName);
-                    await _settingService.SaveSetting(_shippingProviderSettings);
+                    await _settingService.SaveSetting(_shippingProviderSettings, storeScope);
                 }
             }
             else
@@ -191,7 +189,7 @@ namespace Grand.Web.Admin.Controllers
                 {
                     //mark as active
                     _shippingProviderSettings.ActiveSystemNames.Add(srcm.SystemName);
-                    await _settingService.SaveSetting(_shippingProviderSettings);
+                    await _settingService.SaveSetting(_shippingProviderSettings, storeScope);
                 }
             }
             return new JsonResult("");
@@ -349,7 +347,9 @@ namespace Grand.Web.Admin.Controllers
             await _settingService.SaveSetting(shippingSettings, storeScope);
 
             //activity log
-            await customerActivityService.InsertActivity("EditSettings", "", _translationService.GetResource("ActivityLog.EditSettings"));
+            _ = customerActivityService.InsertActivity("EditSettings", "",
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditSettings"));
 
             Success(_translationService.GetResource("Admin.Configuration.Updated"));
             return RedirectToAction("Settings");

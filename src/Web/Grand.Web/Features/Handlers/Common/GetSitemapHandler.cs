@@ -1,9 +1,8 @@
-﻿using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Marketing.Interfaces.Knowledgebase;
+﻿using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Marketing.Knowledgebase;
 using Grand.Infrastructure.Caching;
 using Grand.Domain.Blogs;
 using Grand.Domain.Common;
@@ -19,11 +18,7 @@ using Grand.Web.Models.Common;
 using Grand.Web.Models.Knowledgebase;
 using Grand.Web.Models.Pages;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Grand.Business.Catalog.Interfaces.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Brands;
 
 namespace Grand.Web.Features.Handlers.Common
 {

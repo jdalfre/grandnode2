@@ -1,8 +1,8 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain;
 using Grand.Domain.Messages;
 using Grand.Infrastructure;
@@ -12,10 +12,6 @@ using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -94,17 +90,7 @@ namespace Grand.Web.Admin.Controllers
            
             return Json(PrepareDataSource(queuedEmails));
         }
-        [PermissionAuthorizeAction(PermissionActionName.Preview)]
-        [HttpPost]
-        public async Task<IActionResult> GoToEmailByNumber(QueuedEmailListModel model)
-        {
-            var queuedEmail = await _queuedEmailService.GetQueuedEmailById(model.GoDirectlyToNumber);
-            if (queuedEmail == null)
-                return List();
-
-            return RedirectToAction("Edit", "QueuedEmail", new { id = queuedEmail.Id });
-        }
-
+        
         [PermissionAuthorizeAction(PermissionActionName.List)]
         [HttpPost]
         public async Task<IActionResult> QueuedEmailByReference(DataSourceRequest command, int reference, string objectId)

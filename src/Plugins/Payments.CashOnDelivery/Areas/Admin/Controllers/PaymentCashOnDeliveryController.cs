@@ -1,7 +1,7 @@
-﻿using Grand.Business.Common.Interfaces.Configuration;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Interfaces.Common.Configuration;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Infrastructure;
@@ -10,8 +10,6 @@ using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Payments.CashOnDelivery.Models;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Payments.CashOnDelivery.Controllers
 {
@@ -61,7 +59,8 @@ namespace Payments.CashOnDelivery.Controllers
                 AdditionalFee = cashOnDeliveryPaymentSettings.AdditionalFee,
                 AdditionalFeePercentage = cashOnDeliveryPaymentSettings.AdditionalFeePercentage,
                 ShippableProductRequired = cashOnDeliveryPaymentSettings.ShippableProductRequired,
-                DisplayOrder = cashOnDeliveryPaymentSettings.DisplayOrder
+                DisplayOrder = cashOnDeliveryPaymentSettings.DisplayOrder,
+                SkipPaymentInfo = cashOnDeliveryPaymentSettings.SkipPaymentInfo,
             };
             model.DescriptionText = cashOnDeliveryPaymentSettings.DescriptionText;
 
@@ -86,6 +85,7 @@ namespace Payments.CashOnDelivery.Controllers
             cashOnDeliveryPaymentSettings.AdditionalFeePercentage = model.AdditionalFeePercentage;
             cashOnDeliveryPaymentSettings.ShippableProductRequired = model.ShippableProductRequired;
             cashOnDeliveryPaymentSettings.DisplayOrder = model.DisplayOrder;
+            cashOnDeliveryPaymentSettings.SkipPaymentInfo = model.SkipPaymentInfo;
 
             await _settingService.SaveSetting(cashOnDeliveryPaymentSettings, storeScope);
 

@@ -37,15 +37,11 @@
         <tabstrip-item text="@Loc["Admin.Common.UserFields.Tab"]" tab-index="4">
             <content>
                 <div>
-                    @{
-                        ViewData["ObjectType"] = "BlogPost";
-                        ViewData["TabIndex"] = 4;
-                    }
-                    <partial name="_UserFields" model="Model" view-data="ViewData" />
+                    <partial name="_UserFields" model="Model" />
                 </div>
             </content>
         </tabstrip-item>
-        <vc:admin-widget widget-zone="blog_post_details_tabs" additional-data="Model" />
+        <vc:admin-widget widget-zone="blog_details_tabs" additional-data="Model" />
     </items>
 </admin-tabstrip>
 

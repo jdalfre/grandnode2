@@ -1,14 +1,11 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Security;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Infrastructure;
 using Grand.Web.Extensions;
 using Grand.Web.Features.Models.Pages;
 using Grand.Web.Models.Pages;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Pages
 {

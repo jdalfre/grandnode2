@@ -1,12 +1,9 @@
-﻿using Grand.Domain.Catalog;
+﻿using Grand.Business.Core.Queries.Messages;
+using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using MediatR;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Grand.Business.Messages.Queries.Models.Handlers
+namespace Grand.Business.Messages.Queries.Handlers
 {
     public class GetBidsByProductIdQueryHandler : IRequestHandler<GetBidsByProductIdQuery, IList<Bid>>
     {

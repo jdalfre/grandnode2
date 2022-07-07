@@ -1,10 +1,7 @@
-﻿using Grand.Business.System.Interfaces.Reports;
-using Grand.Business.System.Utilities;
+﻿using Grand.Business.Core.Interfaces.System.Reports;
+using Grand.Business.Core.Utilities.System;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace Grand.Business.System.Services.Reports
 {

@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Commands.Models;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Commands.Catalog;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Localization;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Commands.Handlers.Catalog
 {

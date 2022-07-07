@@ -1,9 +1,9 @@
-﻿using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Documents;
+﻿using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Documents;
 using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Extensions;
 using Grand.Web.Common.Security.Authorization;
@@ -11,9 +11,7 @@ using Grand.Domain.Customers;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Models.Customers;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Grand.Infrastructure;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -28,7 +26,7 @@ namespace Grand.Web.Admin.Controllers
         private readonly ICustomerActivityService _customerActivityService;
         private readonly ITranslationService _translationService;
         private readonly IDocumentService _documentService;
-
+        private readonly IWorkContext _workContext;
         #endregion
 
         #region Constructors
@@ -39,7 +37,9 @@ namespace Grand.Web.Admin.Controllers
             IOrderService orderService,
             IDocumentService documentService,
             ICustomerActivityService customerActivityService,
-            ITranslationService translationService)
+            ITranslationService translationService,
+            IWorkContext workContext
+            )
         {
             _salesEmployeeService = salesEmployeeService;
             _customerService = customerService;
@@ -47,6 +47,7 @@ namespace Grand.Web.Admin.Controllers
             _documentService = documentService;
             _customerActivityService = customerActivityService;
             _translationService = translationService;
+            _workContext = workContext;
         }
 
         #endregion
@@ -85,7 +86,9 @@ namespace Grand.Web.Admin.Controllers
             await _salesEmployeeService.UpdateSalesEmployee(salesemployee);
 
             //activity log
-            await _customerActivityService.InsertActivity("EditSalesEmployee", salesemployee.Id, _translationService.GetResource("ActivityLog.EditSalesEmployee"),
+            _ = _customerActivityService.InsertActivity("EditSalesEmployee", salesemployee.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditSalesEmployee"),
                 salesemployee.Name);
 
             return new JsonResult("");
@@ -105,7 +108,9 @@ namespace Grand.Web.Admin.Controllers
             await _salesEmployeeService.InsertSalesEmployee(salesEmployee);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewSalesEmployee", salesEmployee.Id, _translationService.GetResource("ActivityLog.AddNewSalesEmployee"),
+            _ = _customerActivityService.InsertActivity("AddNewSalesEmployee", salesEmployee.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewSalesEmployee"),
                 salesEmployee.Name);
 
             return new JsonResult("");
@@ -134,7 +139,9 @@ namespace Grand.Web.Admin.Controllers
             await _salesEmployeeService.DeleteSalesEmployee(salesemployee);
 
             //activity log
-            await _customerActivityService.InsertActivity("DeleteSalesEmployee", salesemployee.Id, _translationService.GetResource("ActivityLog.DeleteSalesEmployee"),
+            _ = _customerActivityService.InsertActivity("DeleteSalesEmployee", salesemployee.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteSalesEmployee"),
                 salesemployee.Name);
 
             return new JsonResult("");

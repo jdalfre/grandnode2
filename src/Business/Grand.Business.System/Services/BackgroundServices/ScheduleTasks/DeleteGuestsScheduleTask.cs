@@ -1,8 +1,6 @@
-﻿using Grand.Business.Customers.Interfaces;
-using Grand.Business.System.Interfaces.ScheduleTasks;
+﻿using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.System.ScheduleTasks;
 using Grand.Domain.Common;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.BackgroundServices.ScheduleTasks
 {

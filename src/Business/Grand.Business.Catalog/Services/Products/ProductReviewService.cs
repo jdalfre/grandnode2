@@ -1,12 +1,9 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Products
 {

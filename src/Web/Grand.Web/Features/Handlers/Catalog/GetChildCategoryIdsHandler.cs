@@ -1,12 +1,9 @@
-﻿using Grand.Business.Catalog.Interfaces.Categories;
+﻿using Grand.Business.Core.Interfaces.Catalog.Categories;
 using Grand.Domain.Customers;
 using Grand.Infrastructure.Caching;
 using Grand.Web.Features.Models.Catalog;
 using Grand.Web.Events.Cache;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Catalog
 {

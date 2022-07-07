@@ -1,11 +1,7 @@
-﻿using Grand.Business.Common.Interfaces.Security;
+﻿using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Data;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Widgets.Slider.Domain;
 
 namespace Widgets.Slider.Services
@@ -94,7 +90,7 @@ namespace Widgets.Slider.Services
         /// <returns>Tax rate</returns>
         public virtual Task<PictureSlider> GetById(string slideId)
         {
-            return _reporistoryPictureSlider.FirstOrDefaultAsync(x => x.Id == slideId);
+            return _reporistoryPictureSlider.GetByIdAsync(slideId);
         }
 
         /// <summary>

@@ -3,7 +3,6 @@ using Grand.Infrastructure.Models;
 using Grand.Web.Models.Common;
 using Grand.Web.Models.Media;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 
 namespace Grand.Web.Models.ShoppingCart
 {
@@ -97,19 +96,6 @@ namespace Grand.Web.Models.ShoppingCart
             public string TextPrompt { get; set; }
 
             public bool IsRequired { get; set; }
-
-            /// <summary>
-            /// Selected day value for datepicker
-            /// </summary>
-            public int? SelectedDay { get; set; }
-            /// <summary>
-            /// Selected month value for datepicker
-            /// </summary>
-            public int? SelectedMonth { get; set; }
-            /// <summary>
-            /// Selected year value for datepicker
-            /// </summary>
-            public int? SelectedYear { get; set; }
 
             /// <summary>
             /// Allowed file extensions for customer uploaded files

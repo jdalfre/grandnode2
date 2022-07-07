@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Filters
 {
@@ -18,7 +16,7 @@ namespace Grand.Web.Common.Filters
         /// <param name="actionParameterName">The name of the action parameter to which the result will be passed</param>
         public ValidateCaptchaAttribute(string actionParameterName = "captchaValid") : base(typeof(ValidateCaptchaFilter))
         {
-            this.Arguments = new object[] { actionParameterName };
+            Arguments = new object[] { actionParameterName };
         }
 
         #region Filter
@@ -41,15 +39,17 @@ namespace Grand.Web.Common.Filters
 
             private readonly string _actionParameterName;
             private readonly CaptchaSettings _captchaSettings;
+            private readonly GoogleReCaptchaValidator _googleReCaptchaValidator;
 
             #endregion
 
             #region Ctor
 
-            public ValidateCaptchaFilter(string actionParameterName, CaptchaSettings captchaSettings)
+            public ValidateCaptchaFilter(string actionParameterName, CaptchaSettings captchaSettings, GoogleReCaptchaValidator googleReCaptchaValidator)
             {
                 _actionParameterName = actionParameterName;
                 _captchaSettings = captchaSettings;
+                _googleReCaptchaValidator = googleReCaptchaValidator;
             }
 
             #endregion
@@ -81,17 +81,8 @@ namespace Grand.Web.Common.Filters
                 
                 if ((!StringValues.IsNullOrEmpty(captchaChallengeValue) && !StringValues.IsNullOrEmpty(captchaResponseValue)) || !string.IsNullOrEmpty(gCaptchaResponseValue))
                 {
-                    //create CAPTCHA validator
-                    var captchaValidtor = new GoogleReCaptchaValidator(_captchaSettings.ReCaptchaVersion)
-                    {
-                        SecretKey = _captchaSettings.ReCaptchaPrivateKey,
-                        RemoteIp = context.HttpContext.Connection.RemoteIpAddress?.ToString(),
-                        Response = !StringValues.IsNullOrEmpty(captchaResponseValue) ? captchaResponseValue.ToString() : gCaptchaResponseValue,
-                        Challenge = captchaChallengeValue
-                    };
-
-                    //validate request
-                    var recaptchaResponse = await captchaValidtor.Validate();
+                    //Captcha validate request
+                    var recaptchaResponse = await _googleReCaptchaValidator.Validate(!StringValues.IsNullOrEmpty(captchaResponseValue) ? captchaResponseValue.ToString() : gCaptchaResponseValue);
                     isValid = recaptchaResponse.IsValid;
                     if (!isValid)
                         foreach (var error in recaptchaResponse.ErrorCodes)

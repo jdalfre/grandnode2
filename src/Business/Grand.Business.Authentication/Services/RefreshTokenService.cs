@@ -1,27 +1,24 @@
-﻿using Grand.Business.Authentication.Interfaces;
-using Grand.Business.Common.Interfaces.Directory;
+﻿using Grand.Business.Core.Interfaces.Authentication;
+using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Domain.Customers;
 using Grand.Domain.Security;
 using Grand.Infrastructure.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Authentication.Services
 {
     public class RefreshTokenService : IRefreshTokenService
     {
         private readonly IUserFieldService _userFieldService;
-        private readonly GrandWebApiConfig _grandWebApiConfig;
+        private readonly FrontendAPIConfig _apiConfig;
 
-        public RefreshTokenService(IUserFieldService userFieldService, GrandWebApiConfig grandWebApiConfig)
+        public RefreshTokenService(IUserFieldService userFieldService, FrontendAPIConfig apiConfig)
         {
             _userFieldService = userFieldService;
-            _grandWebApiConfig = grandWebApiConfig;
+            _apiConfig = apiConfig;
         }
 
         public string GenerateRefreshToken()
@@ -40,7 +37,7 @@ namespace Grand.Business.Authentication.Services
                 RefreshId=Guid.NewGuid().ToString(),
                 Token = refreshToken,
                 IsActive = true,
-                ValidTo = DateTime.UtcNow.AddMinutes(_grandWebApiConfig.RefreshTokenExpiryInMinutes)
+                ValidTo = DateTime.UtcNow.AddMinutes(_apiConfig.RefreshTokenExpiryInMinutes)
             };
             await _userFieldService.SaveField(customer, SystemCustomerFieldNames.RefreshToken, token);
             return token;
@@ -54,11 +51,11 @@ namespace Grand.Business.Authentication.Services
         public ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters {
-                ValidateAudience = _grandWebApiConfig.ValidateAudience, 
-                ValidateIssuer = _grandWebApiConfig.ValidateIssuer,
-                ValidateIssuerSigningKey = _grandWebApiConfig.ValidateIssuerSigningKey,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_grandWebApiConfig.SecretKey)),
-                ValidateLifetime = _grandWebApiConfig.ValidateLifetime 
+                ValidateAudience = _apiConfig.ValidateAudience, 
+                ValidateIssuer = _apiConfig.ValidateIssuer,
+                ValidateIssuerSigningKey = _apiConfig.ValidateIssuerSigningKey,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_apiConfig.SecretKey)),
+                ValidateLifetime = _apiConfig.ValidateLifetime 
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

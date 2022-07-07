@@ -1,8 +1,8 @@
 ﻿@model BrandModel
-@inject Grand.Business.Common.Interfaces.Security.IPermissionService permissionService
+@inject Grand.Business.Core.Interfaces.Common.Security.IPermissionService permissionService
 @{
     //has "Manage Documents" permission?
-    var canManageDocuments = await permissionService.Authorize(Grand.Business.Common.Services.Security.StandardPermission.ManageDocuments);
+    var canManageDocuments = await permissionService.Authorize(Grand.Business.Core.Utilities.Common.Security.StandardPermission.ManageDocuments);
 }
 <div asp-validation-summary="All"></div>
 <input asp-for="Id" type="hidden" />
@@ -42,11 +42,7 @@
         <tabstrip-item text="@Loc["Admin.Common.UserFields.Tab"]" tab-index="4">
             <content>
                 <div>
-                    @{
-                        ViewData["ObjectType"] = "Brand";
-                        ViewData["TabIndex"] = 4;
-                    }
-                    <partial name="_UserFields" model="Model" view-data="ViewData" />
+                    <partial name="_UserFields" model="Model" />
                 </div>
             </content>
         </tabstrip-item>

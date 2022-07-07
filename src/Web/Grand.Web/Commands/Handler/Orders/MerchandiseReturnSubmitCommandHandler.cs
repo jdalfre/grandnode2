@@ -1,21 +1,15 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Messages.Interfaces;
-using Grand.Infrastructure;
-using Grand.Domain.Customers;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Localization;
 using Grand.Domain.Orders;
+using Grand.Infrastructure;
 using Grand.Web.Commands.Models.Orders;
 using Grand.Web.Models.Orders;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Grand.Business.Common.Interfaces.Directory;
 
 namespace Grand.Web.Commands.Handler.Orders
 {
@@ -49,8 +43,7 @@ namespace Grand.Web.Commands.Handler.Orders
 
         public async Task<(MerchandiseReturnModel model, MerchandiseReturn rr)> Handle(MerchandiseReturnSubmitCommand request, CancellationToken cancellationToken)
         {
-            var rr = new MerchandiseReturn
-            {
+            var rr = new MerchandiseReturn {
                 StoreId = _workContext.CurrentStore.Id,
                 OrderId = request.Order.Id,
                 CustomerId = _workContext.CurrentCustomer.Id,
@@ -98,8 +91,7 @@ namespace Grand.Web.Commands.Handler.Orders
                     {
                         var rrr = await _merchandiseReturnService.GetMerchandiseReturnReasonById(rrrId);
                         var rra = await _merchandiseReturnService.GetMerchandiseReturnActionById(rraId);
-                        rr.MerchandiseReturnItems.Add(new MerchandiseReturnItem
-                        {
+                        rr.MerchandiseReturnItems.Add(new MerchandiseReturnItem {
                             RequestedAction = rra != null ? rra.GetTranslation(x => x.Name, _workContext.WorkingLanguage.Id) : "not available",
                             ReasonForReturn = rrr != null ? rrr.GetTranslation(x => x.Name, _workContext.WorkingLanguage.Id) : "not available",
                             Quantity = quantity,

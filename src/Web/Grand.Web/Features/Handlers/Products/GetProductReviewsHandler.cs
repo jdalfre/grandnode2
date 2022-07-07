@@ -1,16 +1,13 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
 using Grand.Web.Common.Security.Captcha;
 using Grand.Web.Features.Models.Products;
 using Grand.Web.Models.Catalog;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Products
 {
@@ -47,11 +44,11 @@ namespace Grand.Web.Features.Handlers.Products
             if (request.Product == null)
                 throw new ArgumentNullException(nameof(request.Product));
 
-            var model = new ProductReviewsModel();
-
-            model.ProductId = request.Product.Id;
-            model.ProductName = request.Product.GetTranslation(x => x.Name, request.Language.Id);
-            model.ProductSeName = request.Product.GetSeName(request.Language.Id);
+            var model = new ProductReviewsModel {
+                ProductId = request.Product.Id,
+                ProductName = request.Product.GetTranslation(x => x.Name, request.Language.Id),
+                ProductSeName = request.Product.GetSeName(request.Language.Id)
+            };
             var productReviews = await _productReviewService.GetAllProductReviews("", true, null, null, "", "", request.Product.Id, 0, request.Size);
             foreach (var pr in productReviews)
             {

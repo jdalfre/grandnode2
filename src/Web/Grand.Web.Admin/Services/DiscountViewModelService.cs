@@ -1,31 +1,27 @@
-﻿using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Infrastructure;
+﻿using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Collections;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Catalog;
-using Grand.Domain.Directory;
 using Grand.Domain.Discounts;
 using Grand.Domain.Vendors;
-using Grand.Web.Common.Extensions;
+using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Admin.Models.Discounts;
+using Grand.Web.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Grand.Business.Catalog.Interfaces.Brands;
 
 namespace Grand.Web.Admin.Services
 {
@@ -47,6 +43,7 @@ namespace Grand.Web.Admin.Services
         private readonly IOrderService _orderService;
         private readonly IPriceFormatter _priceFormatter;
         private readonly IDateTimeService _dateTimeService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         #endregion
 
@@ -65,7 +62,8 @@ namespace Grand.Web.Admin.Services
             IVendorService vendorService,
             IOrderService orderService,
             IPriceFormatter priceFormatter,
-            IDateTimeService dateTimeService)
+            IDateTimeService dateTimeService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _discountService = discountService;
             _translationService = translationService;
@@ -81,14 +79,14 @@ namespace Grand.Web.Admin.Services
             _orderService = orderService;
             _priceFormatter = priceFormatter;
             _dateTimeService = dateTimeService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         #endregion
 
         public virtual DiscountListModel PrepareDiscountListModel()
         {
-            var model = new DiscountListModel
-            {
+            var model = new DiscountListModel {
                 AvailableDiscountTypes = DiscountType.AssignedToOrderTotal.ToSelectList(_translationService, _workContext, false).ToList()
             };
             model.AvailableDiscountTypes.Insert(0, new SelectListItem { Text = _translationService.GetResource("Admin.Common.All"), Value = "" });
@@ -146,8 +144,7 @@ namespace Grand.Web.Admin.Services
                     {
                         if (discountPlugin != null)
                         {
-                            model.DiscountRequirementMetaInfos.Add(new DiscountModel.DiscountRequirementMetaInfo
-                            {
+                            model.DiscountRequirementMetaInfos.Add(new DiscountModel.DiscountRequirementMetaInfo {
                                 DiscountRequirementId = dr.Id,
                                 RuleName = discountRequirement.FriendlyName,
                                 ConfigurationUrl = GetRequirementUrlInternal(discountRequirement, discount, dr.Id)
@@ -165,7 +162,9 @@ namespace Grand.Web.Admin.Services
             await _discountService.InsertDiscount(discount);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewDiscount", discount.Id, _translationService.GetResource("ActivityLog.AddNewDiscount"), discount.Name);
+            _ = _customerActivityService.InsertActivity("AddNewDiscount", discount.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewDiscount"), discount.Name);
             return discount;
         }
 
@@ -216,7 +215,9 @@ namespace Grand.Web.Admin.Services
             }
 
             //activity log
-            await _customerActivityService.InsertActivity("EditDiscount", discount.Id, _translationService.GetResource("ActivityLog.EditDiscount"), discount.Name);
+            _ = _customerActivityService.InsertActivity("EditDiscount", discount.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditDiscount"), discount.Name);
             return discount;
 
         }
@@ -224,12 +225,13 @@ namespace Grand.Web.Admin.Services
         {
             await _discountService.DeleteDiscount(discount);
             //activity log
-            await _customerActivityService.InsertActivity("DeleteDiscount", discount.Id, _translationService.GetResource("ActivityLog.DeleteDiscount"), discount.Name);
+            _ = _customerActivityService.InsertActivity("DeleteDiscount", discount.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteDiscount"), discount.Name);
         }
         public virtual async Task InsertCouponCode(string discountId, string couponCode)
         {
-            var coupon = new DiscountCoupon
-            {
+            var coupon = new DiscountCoupon {
                 CouponCode = couponCode.ToUpper(),
                 DiscountId = discountId
             };
@@ -256,7 +258,7 @@ namespace Grand.Web.Admin.Services
         }
         public virtual async Task<DiscountModel.AddProductToDiscountModel> PrepareProductToDiscountModel()
         {
-            var model = new DiscountModel.AddProductToDiscountModel();            
+            var model = new DiscountModel.AddProductToDiscountModel();
             //stores
             model.AvailableStores.Add(new SelectListItem { Text = _translationService.GetResource("Admin.Common.All"), Value = " " });
             foreach (var s in await _storeService.GetAllStores())
@@ -398,8 +400,7 @@ namespace Grand.Web.Admin.Services
             foreach (var x in duh)
             {
                 var order = await _orderService.GetOrderById(x.OrderId);
-                var duhModel = new DiscountModel.DiscountUsageHistoryModel
-                {
+                var duhModel = new DiscountModel.DiscountUsageHistoryModel {
                     Id = x.Id,
                     DiscountId = x.DiscountId,
                     OrderId = x.OrderId,

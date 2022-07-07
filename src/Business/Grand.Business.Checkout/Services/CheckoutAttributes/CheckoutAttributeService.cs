@@ -1,4 +1,4 @@
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
@@ -8,10 +8,6 @@ using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Services.CheckoutAttributes
 {

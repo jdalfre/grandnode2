@@ -1,7 +1,6 @@
-﻿using Grand.Business.System.Interfaces.Installation;
+﻿using Grand.Business.Core.Interfaces.System.Installation;
 using Grand.Domain.Catalog;
 using Grand.Domain.Orders;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.Installation
 {

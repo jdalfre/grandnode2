@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
-using Grand.Business.Common.Extensions;
+using Grand.Business.Core.Extensions;
 using Grand.Domain.News;
 using Grand.Infrastructure.Mapper;
 using Grand.Web.Admin.Models.News;
-using System.Linq;
 
 namespace Grand.Web.Admin.Mapper
 {

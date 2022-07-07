@@ -1,6 +1,5 @@
 ﻿using Grand.Infrastructure.ModelBinding;
 using Grand.Infrastructure.Models;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Grand.Web.Admin.Models.Common
@@ -21,6 +20,7 @@ namespace Grand.Web.Admin.Models.Common
         public ConvertPictureModel ConvertedPictureModel { get; set; }
 
         public bool DeleteActivityLog { get; set; }
+        public bool DeleteSystemLog { get; set; }
 
         #region Nested classes
 

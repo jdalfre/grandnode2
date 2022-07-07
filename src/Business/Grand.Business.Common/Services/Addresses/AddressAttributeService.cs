@@ -1,14 +1,10 @@
-using Grand.Business.Common.Interfaces.Addresses;
+using Grand.Business.Core.Interfaces.Common.Addresses;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain.Common;
 using Grand.Domain.Data;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Common.Services.Addresses
 {

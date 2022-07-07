@@ -1,13 +1,12 @@
-﻿using Grand.Business.Common.Interfaces.Stores;
+﻿using Grand.Business.Core.Interfaces.Common.Stores;
 using Grand.Infrastructure;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Web.Common.Components;
 using Grand.Web.Admin.Models.Settings;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Grand.Business.Common.Interfaces.Directory;
-using System.Linq;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Domain.Stores;
 
 namespace Grand.Web.Admin.Components
 {
@@ -52,7 +51,7 @@ namespace Grand.Web.Admin.Components
                     Name = s.Shortcut
                 });
             }
-            model.StoreId = await GetActiveStore(_storeService, _workContext);
+            model.StoreId = await GetActiveStore(allStores);
             return View(model);
         }
 
@@ -60,14 +59,14 @@ namespace Grand.Web.Admin.Components
 
         #region Methods
 
-        private async Task<string> GetActiveStore(IStoreService storeService, IWorkContext workContext)
+        private async Task<string> GetActiveStore(IList<Store> stores)
         {
             //ensure that we have 2 (or more) stores
-            if ((await storeService.GetAllStores()).Count < 2)
-                return string.Empty;
+            if (stores.Count < 2)
+                return stores.FirstOrDefault().Id;
 
-            var storeId = workContext.CurrentCustomer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.AdminAreaStoreScopeConfiguration);
-            var store = await storeService.GetStoreById(storeId);
+            var storeId = _workContext.CurrentCustomer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.AdminAreaStoreScopeConfiguration);
+            var store = await _storeService.GetStoreById(storeId);
 
             return store != null ? store.Id : "";
         }

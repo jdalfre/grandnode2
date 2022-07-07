@@ -1,5 +1,4 @@
-﻿using Grand.Business.Common.Interfaces.Logging;
-using System.Collections.Generic;
+﻿using Grand.Business.Core.Interfaces.Common.Logging;
 
 namespace Grand.Business.Common.Services.Logging
 {

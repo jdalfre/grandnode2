@@ -1,11 +1,11 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Customers;
-using Grand.Business.Messages.DotLiquidDrops;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
+using Grand.Business.Core.Utilities.Messages.DotLiquidDrops;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain;
 using Grand.Domain.Common;
@@ -17,10 +17,7 @@ using Grand.Domain.Orders;
 using Grand.Domain.Payments;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Grand.Business.Core.Utilities.Marketing;
 
 namespace Grand.Business.Marketing.Services.Customers
 {
@@ -134,7 +131,7 @@ namespace Grand.Business.Marketing.Services.Customers
 
             await _queuedEmailService.InsertQueuedEmail(email);
             //activity log
-            await _customerActivityService.InsertActivity(string.Format("CustomerReminder.{0}", customerReminder.ReminderRuleId.ToString()), customer.Id, _translationService.GetResource(string.Format("ActivityLog.{0}", customerReminder.ReminderRuleId.ToString())), customer, customerReminder.Name);
+            _ = _customerActivityService.InsertActivity(string.Format("CustomerReminder.{0}", customerReminder.ReminderRuleId.ToString()), customer.Id, customer, "", _translationService.GetResource(string.Format("ActivityLog.{0}", customerReminder.ReminderRuleId.ToString())), customerReminder.Name);
 
             return true;
         }
@@ -207,7 +204,7 @@ namespace Grand.Business.Marketing.Services.Customers
 
             await _queuedEmailService.InsertQueuedEmail(email);
             //activity log
-            await _customerActivityService.InsertActivity(string.Format("CustomerReminder.{0}", customerReminder.ReminderRuleId.ToString()), customer.Id, string.Format("ActivityLog.{0}", customerReminder.ReminderRuleId.ToString()), customer, customerReminder.Name);
+            _ = _customerActivityService.InsertActivity(string.Format("CustomerReminder.{0}", customerReminder.ReminderRuleId.ToString()), customer.Id, customer, "", string.Format("ActivityLog.{0}", customerReminder.ReminderRuleId.ToString()), customerReminder.Name);
 
             return true;
         }
@@ -1412,13 +1409,5 @@ namespace Grand.Business.Marketing.Services.Customers
         #endregion
     }
 
-    public class SerializeCustomerReminderHistory
-    {
-        public string Id { get; set; }
-        public string CustomerReminderId { get; set; }
-        public string CustomerId { get; set; }
-        public DateTime SendDate { get; set; }
-        public int Level { get; set; }
-        public string OrderId { get; set; }
-    }
+    
 }

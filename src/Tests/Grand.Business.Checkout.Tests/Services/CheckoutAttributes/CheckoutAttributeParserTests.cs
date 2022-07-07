@@ -1,4 +1,4 @@
-﻿using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
+﻿using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
 using Grand.Business.Checkout.Services.CheckoutAttributes;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
@@ -12,8 +12,6 @@ using Grand.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Grand.Business.Checkout.Tests.Services.CheckoutAttributes
 {

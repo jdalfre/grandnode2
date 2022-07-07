@@ -51,17 +51,53 @@ var vmorder = new Vue({
             vPaymentMethod: null,
             vPaymentInfo: null,
             vConfirmOrder: null,
-            // paymentinfobussy
-            paymentBussy: false,
-            // shippingbussy
-            shippingBussy: false,
+            // paymentinfobusy
+            paymentBusy: false,
+            // shippingbusy
+            shippingBusy: false,
             // selectedshipping
-            selectedShippingMethod: 0
+            selectedShippingMethod: 0,
+            shippingAddressErrors: null,
+            billingAddressErrors: null,
+            PickUpInStore: false,
+            shippingContainer: true,
+            validPayment: true,
+            previousStep: [],
         }
     },
     methods: {
+        saveStep(step, submitter, form) {
+            if (this.PickUpInStore && step === 'vShipping') {
+                vmorder[step].save();
+            } else {
+                if (form) {
+                    if (step === 'vBilling') {
+                        vmorder.BillingAddress = true;
+                    } else {
+                        vmorder.BillingAddress = false;
+                    }
+                    vm.$refs[submitter].click();
+                } else {
+                    vmorder[step].save();
+                }
+            }
+        },
+        backStep(step) {
+            const last = step[step.length - 1];
+            vmorder.Checkout.back();
+            vm.$refs[last].click();
+            vmorder.previousStep.pop();
+        },
         formCheckoutSubmit() {
-            document.querySelector('#shipping-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vShipping.save(); document.getElementById('opc-shipping-submit').click()");
+            if (vmorder.BillingAddress) {
+                vmorder.vBilling.save();
+                vmorder.shippingAddressErrors = null;
+                vmorder.billingAddressErrors = null;
+            } else {
+                vmorder.vShipping.save();
+                vmorder.shippingAddressErrors = null;
+                vmorder.billingAddressErrors = null;
+            }
         },
         setDisabled(e) {
             var button = e.target;
@@ -137,7 +173,6 @@ var vmorder = new Vue({
                 },
 
                 setStepResponse: function (response) {
-
                     if (response.data.update_section.name) {
                         if (response.data.goto_section == "shipping") {
                             var model = response.data.update_section.model;
@@ -193,9 +228,9 @@ var vmorder = new Vue({
                             var model = response.data.update_section.model;
                             vmorder.PaymentViewComponentName = model.PaymentViewComponentName;
                             vmorder.PaymentInfo = true;
-                            vmorder.paymentBussy = true;
+                            vmorder.paymentBusy = true;
+                            vmorder.validPayment = true;
                             document.querySelector(".payment-info-next-step-button").classList.add("disabled");
-                            document.querySelector(".payment-info-next-step-button").setAttribute("onclick", "vmorder.vPaymentInfo.save()");
                             axios({
                                 baseURL: '/Component/Index?Name=' + model.PaymentViewComponentName,
                                 method: 'get',
@@ -205,7 +240,7 @@ var vmorder = new Vue({
                                     'Content-Type': 'application/json',
                                 }
                             }).then(response => {
-                                vmorder.paymentBussy = false;
+                                vmorder.paymentBusy = false;
                                 var html = response.data;
                                 document.querySelector('.payment-info .info').innerHTML = html;
                             }).then(function () {
@@ -227,11 +262,6 @@ var vmorder = new Vue({
 
                             vmorder.Confirm = true;
 
-                            setTimeout(function () {
-                                var c_back = document.getElementById('back-confirm_order').getAttribute('onclick');
-                                document.getElementById('new-back-confirm_order').setAttribute('onclick', c_back);
-                            }, 300);
-
                             this.updateOrderSummary(true);
                             vmorder.updateTotals();
                         }
@@ -243,18 +273,15 @@ var vmorder = new Vue({
                             }
                         }
                     }
+
                     if (response.data.allow_sections) {
                         response.data.allow_sections.forEach(function (e) {
                             document.querySelector('#button-' + e).classList.add('allow');
                         });
                     }
 
-                    if (document.querySelector("#shipping-address-select")) {
-                        vmorder.vShipping.newAddress(!document.querySelector('#shipping-address-select').value);
-                    }
-                    if (document.querySelector("#billing-address-select")) {
-                        vmorder.vBilling.newAddress(!document.querySelector('#billing-address-select').value);
-                    }
+                    vmorder.scrollToSection();
+
                     if (response.data.update_section) {
                         vmorder.Checkout.gotoSection(response.data.update_section.name);
                         return true;
@@ -297,47 +324,8 @@ var vmorder = new Vue({
                     if (isNew) {
                         this.resetSelectedAddress();
                         document.querySelector('#shipping-new-address-form').style.display = 'block';
-                        document.querySelector('#shipping-buttons-container .new-address-next-step-button').setAttribute('onclick', "document.getElementById('opc-shipping-submit').click()");
                     } else {
                         document.querySelector('#shipping-new-address-form').style.display = 'none';
-                        document.querySelector('#shipping-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vShipping.save();");
-                    }
-                },
-
-                togglePickUpInStore: function (pickupInStoreInput) {
-                    if (pickupInStoreInput.checked) {
-
-                        if (document.querySelector('.select-shipping-address'))
-                            document.querySelector('.select-shipping-address').style.display = 'none';
-
-                        document.querySelector('#pickup-points-form').style.display = 'block';
-                        document.getElementById("BillToTheSameAddress").disabled = true;
-                        if (document.getElementById("select-shipping-address")) {
-                            if (document.getElementById("shipping-address-select").value !== '') {
-                                document.querySelector('#shipping-new-address-form').style.display = 'none';
-                            }
-                        } else {
-                            document.querySelector('#shipping-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vShipping.save();");
-                            document.querySelector('#shipping-new-address-form').style.display = 'none';
-                        }
-                    }
-                    else {
-                        if (document.querySelector('.select-shipping-address'))
-                            document.querySelector('.select-shipping-address').style.display = 'block';
-
-                        document.querySelector('#pickup-points-form').style.display = 'none';
-                        document.getElementById("BillToTheSameAddress").disabled = false;
-                        if (document.getElementById("select-shipping-address")) {
-                            if (document.getElementById("shipping-address-select").value == '') {
-                                document.querySelector('#shipping-new-address-form').style.display = 'block';
-                            }
-                        } else {
-                            if (document.getElementById("shipping-address-select").value == '') {
-                                document.querySelector('#shipping-buttons-container .new-address-next-step-button').setAttribute('onclick', "document.getElementById('opc-shipping-submit').click()");
-                                document.querySelector('#shipping-new-address-form').style.display = 'block';
-                            }
-                        }
-
                     }
                 },
 
@@ -361,9 +349,12 @@ var vmorder = new Vue({
                     }).then(function (response) {
                         if (response.data.goto_section !== undefined) {
                             if (!(response.data.update_section.name == "shipping")) {
-                                document.querySelector('#back-' + response.data.goto_section).setAttribute('onclick', 'document.querySelector("#button-shipping").click(); vmorder.Billing = false;');
+                                vmorder.previousStep.push('buttonShipping');
                                 vmorder.vShipping.nextStep(response);
                             }
+                        }
+                        if (response.data.wrong_shipping_address) {
+                            vmorder.shippingAddressErrors = response.data.model_state;
                         }
                     }).catch(function (error) {
                         error.axiosFailure;
@@ -377,6 +368,7 @@ var vmorder = new Vue({
                 },
 
                 nextStep: function (response) {
+
                     if (response.data.error) {
                         if ((typeof response.data.message) == 'string') {
                             alert(response.data.message);
@@ -406,13 +398,11 @@ var vmorder = new Vue({
                         vmorder.BillingNewAddressPreselected = true;
                         if (document.querySelector('#billing-new-address-form'))
                             document.querySelector('#billing-new-address-form').style.display = 'block';
-                            document.querySelector('#billing-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vBilling.save(); document.getElementById('opc-billing-submit').click()");
 
                     } else {
                         vmorder.BillingNewAddressPreselected = false;
                         if (document.querySelector('#billing-new-address-form'))
                             document.querySelector('#billing-new-address-form').style.display = 'none';
-                            document.querySelector('#billing-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vBilling.save();");
                     }
 
                 },
@@ -437,7 +427,10 @@ var vmorder = new Vue({
                         data: data,
                     }).then(function (response) {
                         if (document.querySelector('#back-' + response.data.goto_section)) {
-                            document.querySelector('#back-' + response.data.goto_section).setAttribute('onclick', 'document.querySelector("#button-billing").click(); vmorder.ShippingMethod = false;');
+                            vmorder.previousStep.push('buttonBilling');
+                        }
+                        if (response.data.wrong_billing_address) {
+                            vmorder.billingAddressErrors = response.data.model_state;
                         }
                         vmorder.vBilling.nextStep(response);
 
@@ -513,9 +506,9 @@ var vmorder = new Vue({
                             if (response.data.error !== undefined) {
                                 vmorder.ShippingMethodError = response.data.message;
                             } else {
+                                vmorder.previousStep.push('buttonShippingMethod');
                                 vmorder.ShippingMethodError = undefined;
                             }
-                            document.querySelector('#back-' + response.data.goto_section).setAttribute('onclick', 'document.querySelector("#button-shipping-method").click(); vmorder.PaymentMethod = false;');
                             vmorder.vShippingMethod.nextStep(response);
                         }).catch(function (error) {
                             error.axiosFailure;
@@ -593,7 +586,7 @@ var vmorder = new Vue({
                         }).then(function (response) {
                             if (response.data.goto_section !== undefined) {
                                 vmorder.vPaymentMethod.nextStep(response);
-                                document.querySelector('#back-' + response.data.goto_section).setAttribute('onclick', 'document.querySelector("#button-payment-method").click(); vmorder.PaymentInfo = false;');
+                                vmorder.previousStep.push('buttonPaymentMethod');
                             }
                             if (response.data.error) {
                                 alert(response.data.message);
@@ -636,42 +629,44 @@ var vmorder = new Vue({
                 },
 
                 save: function () {
-                    if (vmorder.Checkout.loadWaiting != false) return;
+                    if (vmorder.validPayment) {
+                        if (vmorder.Checkout.loadWaiting != false) return;
 
-                    vmorder.Checkout.setLoadWaiting('payment-info');
-                    var form = document.querySelector(this.form);
-                    var data = new FormData(form);
+                        vmorder.Checkout.setLoadWaiting('payment-info');
+                        var form = document.querySelector(this.form);
+                        var data = new FormData(form);
 
-                    axios({
-                        url: this.saveUrl,
-                        method: 'post',
-                        data: data,
-                    }).then(function (response) {
-                        if (response.data.goto_section !== undefined) {
-                            document.querySelector('#back-' + response.data.goto_section).setAttribute('onclick', 'document.querySelector("#button-payment-info").click();vmorder.Confirm = false;');
-                            vmorder.vPaymentInfo.nextStep(response);
-                        }
-                        if (response.data.update_section !== undefined && response.data.update_section.name == 'payment-info') {
-                            var model = response.data.update_section.model;
-                            vm.PaymentViewComponentName = model.PaymentViewComponentName,
-                                vm.PaymentInfo = true;
+                        axios({
+                            url: this.saveUrl,
+                            method: 'post',
+                            data: data,
+                        }).then(function (response) {
+                            if (response.data.goto_section !== undefined) {
+                                vmorder.previousStep.push('buttonPaymentInfo');
+                                vmorder.vPaymentInfo.nextStep(response);
+                            }
+                            if (response.data.update_section !== undefined && response.data.update_section.name == 'payment-info') {
+                                var model = response.data.update_section.model;
+                                vm.PaymentViewComponentName = model.PaymentViewComponentName,
+                                    vm.PaymentInfo = true;
 
-                            axios({
-                                baseURL: '/Component/Form?Name=' + model.PaymentViewComponentName,
-                                method: 'post',
-                                data: data,
-                            }).then(response => {
-                                var html = response.data;
-                                document.querySelector('.payment-info .info').innerHTML = html;
-                            })
+                                axios({
+                                    baseURL: '/Component/Form?Name=' + model.PaymentViewComponentName,
+                                    method: 'post',
+                                    data: data,
+                                }).then(response => {
+                                    var html = response.data;
+                                    document.querySelector('.payment-info .info').innerHTML = html;
+                                })
 
-                        }
+                            }
 
-                    }).catch(function (error) {
-                        error.axiosFailure;
-                    }).then(function () {
-                        vmorder.vPaymentInfo.resetLoadWaiting()
-                    });
+                        }).catch(function (error) {
+                            error.axiosFailure;
+                        }).then(function () {
+                            vmorder.vPaymentInfo.resetLoadWaiting()
+                        });
+                    }
                 },
 
                 resetLoadWaiting: function () {
@@ -807,10 +802,6 @@ var vmorder = new Vue({
                 if (document.querySelector("#billing-address-select")) {
                     vmorder.vBilling.newAddress(!document.querySelector('#billing-address-select').value);
                 }
-                if (document.querySelector("#PickUpInStore")) {
-                    vmorder.vShipping.togglePickUpInStore(document.querySelector("#PickUpInStore"));
-                }
-
             });
         },
         vmresetSteps(e) {
@@ -825,20 +816,28 @@ var vmorder = new Vue({
             card.classList.add('active');
         },
         loadPartialView(arg_value) {
-            vmorder.shippingBussy = true;
+            vmorder.shippingBusy = true;
             document.querySelector(".shipping-method-next-step-button").classList.add("disabled");
             var url = window.location.origin + '/checkout/GetShippingFormPartialView?shippingOption=' + arg_value;
             axios({
                 url: url,
                 method: 'post',
             }).then(function (response) {
-                vmorder.shippingBussy = false;
+                vmorder.shippingBusy = false;
                 document.getElementById('shipping_form').innerHTML = response.data;
                 document.querySelector(".shipping-method-next-step-button").classList.remove("disabled");
             }).then(function () {
                 if (document.querySelector('.script-tag')) {
                     runScripts(document.querySelector('.script-tag'))
                 }
+            });
+        },
+        scrollToSection() {
+            var container = document.getElementById("checkout-steps");
+            window.scrollTo({
+                top: container.offsetTop,
+                left: 0,
+                behavior: 'smooth'
             });
         }
     },
@@ -856,6 +855,9 @@ var vmorder = new Vue({
         this.otherScripts();
     },
     watch: {
+        PickUpInStore() {
+            this.shippingContainer = !this.shippingContainer;
+        },
         terms: function () {
             if (this.terms == true) {
                 this.acceptTerms = false;
@@ -866,48 +868,19 @@ var vmorder = new Vue({
                 vmorder.Checkout.init('/cart/');
             }
         },
-        BillingAddress: function () {
-            setTimeout(function () {
-                if (document.getElementById("billing-address-select").value == '') {
-                    document.querySelector('#billing-buttons-container .new-address-next-step-button').setAttribute('onclick', "vmorder.vBilling.save(); document.getElementById('opc-billing-submit').click()");
-                }
-            }, 300);
-        },
         vShipping: function () {
             if (this.vShipping !== null) {
-                vmorder.vShipping.init('#co-shipping-form', '/checkout/SaveShipping/');
-                if (document.querySelector("#shipping-address-select")) {
-                    vmorder.vShipping.newAddress(!document.querySelector('#shipping-address-select').value);
+                if (document.getElementById("shipping-address-select")) {
+                    vmorder.vShipping.newAddress(!document.getElementById('shipping-address-select').value);
                 }
             }
         },
         vBilling: function () {
             if (this.vBilling !== null) {
-                vmorder.vBilling.init('#co-billing-form', '/checkout/SaveBilling/');
                 if (document.querySelector("#billing-address-select")) {
                     vmorder.vBilling.newAddress(!document.querySelector('#billing-address-select').value);
                 }
             }
-        },
-        vShippingMethod: function () {
-            if (this.vShippingMethod !== null) {
-                vmorder.vShippingMethod.init('#co-shipping-method-form', '/checkout/SaveShippingMethod/');
-            }
-        },
-        vPaymentMethod: function () {
-            if (this.vPaymentMethod !== null) {
-                vmorder.vPaymentMethod.init('#co-payment-method-form', '/checkout/SavePaymentMethod/');
-            }
-        },
-        vPaymentInfo: function () {
-            if (this.vPaymentInfo !== null) {
-                vmorder.vPaymentInfo.init('#co-payment-info-form', '/checkout/SavePaymentInfo/');
-            }
-        },
-        vConfirmOrder: function () {
-            if (this.vConfirmOrder !== null) {
-                vmorder.vConfirmOrder.init('/checkout/ConfirmOrder/', '/checkout/completed/');
-            }
-        },
+        }
     }
 });

@@ -1,7 +1,6 @@
 ﻿using Grand.Domain.Data;
 using Grand.Infrastructure.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Grand.Web.Models.Install
@@ -14,6 +13,8 @@ namespace Grand.Web.Models.Install
             AvailableCollation = new List<SelectListItem>();
             AvailableProviders = new List<SelectListItem>();
         }
+        public string SelectedLanguage { get; set; }
+
         [DataType(DataType.EmailAddress)]
         public string AdminEmail { get; set; }
         [DataType(DataType.Password)]

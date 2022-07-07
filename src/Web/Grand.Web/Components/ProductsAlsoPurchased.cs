@@ -1,5 +1,5 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.System.Interfaces.Reports;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.System.Reports;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Grand.Domain.Catalog;
@@ -8,8 +8,6 @@ using Grand.Web.Features.Models.Products;
 using Grand.Web.Events.Cache;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Components
 {

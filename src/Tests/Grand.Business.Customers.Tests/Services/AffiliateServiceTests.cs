@@ -1,4 +1,4 @@
-﻿using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Customers.Services;
 using Grand.Domain.Affiliates;
 using Grand.Domain.Data;
@@ -7,9 +7,6 @@ using Grand.Infrastructure.Events;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Customers.Tests.Services
 {

@@ -1,11 +1,8 @@
-﻿using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Orders;
 using Grand.Web.Commands.Models.Orders;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Orders
 {

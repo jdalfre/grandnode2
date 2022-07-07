@@ -1,12 +1,7 @@
 ﻿using Grand.Domain.Security;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Grand.Infrastructure.TypeConverters.Converter
 {
@@ -48,8 +43,7 @@ namespace Grand.Infrastructure.TypeConverters.Converter
         {
             if (destinationType == typeof(string))
             {
-                var refreshToken = value as RefreshToken;
-                if (refreshToken != null)
+                if (value is RefreshToken refreshToken)
                 {
                     return JsonSerializer.Serialize(refreshToken);
                 }

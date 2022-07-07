@@ -1,12 +1,11 @@
-﻿using Grand.Business.Catalog.Commands.Models;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Events.Models;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Commands.Catalog;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Events.Catalog;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Catalog;
-using Grand.Domain.Customers;
 using Grand.Web.Common.Extensions;
 using Grand.SharedKernel.Extensions;
 using Grand.Web.Admin.Extensions;
@@ -14,10 +13,6 @@ using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {

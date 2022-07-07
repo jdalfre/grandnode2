@@ -1,8 +1,8 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Customers;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
@@ -12,8 +12,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Net.Http.Headers;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Filters
 {
@@ -133,7 +131,8 @@ namespace Grand.Web.Common.Filters
                     if (!_workContext.CurrentCustomer.IsSearchEngineAccount())
                     {
                         //activity
-                        await _customerActivityService.InsertActivity("PublicStore.Url", pageUrl, pageUrl, _workContext.CurrentCustomer);
+                        _ = _customerActivityService.InsertActivity("PublicStore.Url", pageUrl, _workContext.CurrentCustomer, 
+                            context.HttpContext?.Connection?.RemoteIpAddress?.ToString(), pageUrl);
                         //action
                         await _customerActionEventService.Url(_workContext.CurrentCustomer, context.HttpContext?.Request?.Path.ToString(), context.HttpContext?.Request?.Headers["Referer"]);
                     }

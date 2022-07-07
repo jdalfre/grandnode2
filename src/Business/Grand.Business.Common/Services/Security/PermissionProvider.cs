@@ -1,7 +1,7 @@
-﻿using Grand.Business.Common.Interfaces.Security;
+﻿using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Customers;
 using Grand.Domain.Permissions;
-using System.Collections.Generic;
 
 namespace Grand.Business.Common.Services.Security
 {
@@ -74,9 +74,9 @@ namespace Grand.Business.Common.Services.Security
                 StandardPermission.ManageMessageQueue,
                 StandardPermission.ManageMessageContactForm,
                 StandardPermission.ManageMaintenance,
+                StandardPermission.ManageSystem,
                 StandardPermission.ManageFiles,
                 StandardPermission.ManagePictures,
-                StandardPermission.ManageUserFields,
                 StandardPermission.HtmlEditorManagePictures,
                 StandardPermission.ManageScheduleTasks,
                 StandardPermission.DisplayPrices,
@@ -160,9 +160,9 @@ namespace Grand.Business.Common.Services.Security
                         StandardPermission.ManageMessageQueue,
                         StandardPermission.ManageMessageContactForm,
                         StandardPermission.ManageMaintenance,
+                        StandardPermission.ManageSystem,
                         StandardPermission.ManageFiles,
                         StandardPermission.ManagePictures,
-                        StandardPermission.ManageUserFields,
                         StandardPermission.HtmlEditorManagePictures,
                         StandardPermission.ManageScheduleTasks,
                         StandardPermission.DisplayPrices,

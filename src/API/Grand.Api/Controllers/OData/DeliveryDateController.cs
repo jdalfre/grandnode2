@@ -1,13 +1,12 @@
 ﻿using Grand.Api.DTOs.Shipping;
 using Grand.Api.Queries.Models.Common;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 
 namespace Grand.Api.Controllers.OData
 {
@@ -24,12 +23,15 @@ namespace Grand.Api.Controllers.OData
 
         [SwaggerOperation(summary: "Get entity from Delivery Date by key", OperationId = "GetDeliveryDateById")]
         [HttpGet("{key}")]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(string key)
         {
             if (!await _permissionService.Authorize(PermissionSystemName.ShippingSettings))
                 return Forbid();
 
-            var deliverydate = await _mediator.Send(new GetQuery<DeliveryDateDto>() { Id = key });
+            var deliverydate = await _mediator.Send(new GetGenericQuery<DeliveryDateDto, Domain.Shipping.DeliveryDate>(key));
             if (!deliverydate.Any())
                 return NotFound();
 
@@ -39,12 +41,14 @@ namespace Grand.Api.Controllers.OData
         [SwaggerOperation(summary: "Get entities from Delivery Date", OperationId = "GetDeliveryDates")]
         [HttpGet]
         [EnableQuery(HandleNullPropagation = HandleNullPropagationOption.False)]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Get()
         {
             if (!await _permissionService.Authorize(PermissionSystemName.ShippingSettings))
                 return Forbid();
 
-            return Ok(await _mediator.Send(new GetQuery<DeliveryDateDto>()));
+            return Ok(await _mediator.Send(new GetGenericQuery<DeliveryDateDto, Domain.Shipping.DeliveryDate>()));
         }
     }
 }

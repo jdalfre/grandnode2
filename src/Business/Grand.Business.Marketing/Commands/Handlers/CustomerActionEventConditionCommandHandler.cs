@@ -1,6 +1,6 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Commands.Models;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Commands.Marketing;
 using Grand.Infrastructure;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
@@ -10,11 +10,6 @@ using Grand.Domain.Logging;
 using Grand.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Commands.Handlers
 {

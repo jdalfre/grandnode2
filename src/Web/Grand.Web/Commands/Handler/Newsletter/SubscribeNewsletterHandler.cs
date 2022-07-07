@@ -1,16 +1,13 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Messages;
 using Grand.SharedKernel.Extensions;
 using Grand.Web.Commands.Models.Newsletter;
 using Grand.Web.Models.Newsletter;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Newsletter
 {

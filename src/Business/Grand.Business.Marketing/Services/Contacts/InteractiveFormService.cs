@@ -1,12 +1,8 @@
-﻿using Grand.Business.Marketing.Interfaces.Contacts;
+﻿using Grand.Business.Core.Interfaces.Marketing.Contacts;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain.Data;
 using Grand.Domain.Messages;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Services.Contacts
 {

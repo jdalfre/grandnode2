@@ -1,4 +1,5 @@
 using FluentValidation;
+using Grand.Business.Core.Interfaces.Common.Pdf;
 using Grand.Domain.Data;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
@@ -12,16 +13,16 @@ using Grand.Web.Common.Localization;
 using Grand.Web.Common.Middleware;
 using Grand.Web.Common.Page;
 using Grand.Web.Common.Routing;
+using Grand.Web.Common.Security.Captcha;
 using Grand.Web.Common.TagHelpers;
 using Grand.Web.Common.Themes;
+using Grand.Web.Common.ViewRender;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using StackExchange.Redis;
-using System;
-using System.Linq;
 using System.Reflection;
 
 namespace Grand.Web.Common.Startup
@@ -39,11 +40,7 @@ namespace Grand.Web.Common.Startup
         /// <param name="config">Config</param>
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var config = new AppConfig();
-
-            configuration.GetSection("Application").Bind(config);
-
-            RegisterCache(services, config);
+            RegisterCache(services, configuration);
 
             RegisterContextService(services);
 
@@ -59,8 +56,11 @@ namespace Grand.Web.Common.Startup
         public int Priority => 0;
         public bool BeforeConfigure => false;
 
-        private void RegisterCache(IServiceCollection serviceCollection, AppConfig config)
+        private void RegisterCache(IServiceCollection serviceCollection, IConfiguration configuration)
         {
+            var config = new RedisConfig();
+            configuration.GetSection("Redis").Bind(config);
+
             serviceCollection.AddSingleton<ICacheBase, MemoryCacheBase>();
 
             if (config.RedisPubSubEnabled)
@@ -71,7 +71,9 @@ namespace Grand.Web.Common.Startup
                 serviceCollection.AddSingleton<ICacheBase, RedisMessageCacheManager>();
                 return;
             }
-            if (config.RabbitCachePubSubEnabled && config.RabbitEnabled)
+            var rabbit = new RabbitConfig();
+            configuration.GetSection("Rabbit").Bind(rabbit);
+            if (rabbit.RabbitCachePubSubEnabled && rabbit.RabbitEnabled)
             {
                 serviceCollection.AddSingleton<ICacheBase, RabbitMqMessageCacheManager>();
             }
@@ -118,6 +120,8 @@ namespace Grand.Web.Common.Startup
         {
             serviceCollection.AddScoped<IPageHeadBuilder, PageHeadBuilder>();
 
+            serviceCollection.AddSingleton<IThemeList, ThemeList>();
+
             serviceCollection.AddScoped<IThemeProvider, ThemeProvider>();
             serviceCollection.AddScoped<IThemeContext, ThemeContext>();
 
@@ -136,6 +140,11 @@ namespace Grand.Web.Common.Startup
 
             //powered by
             serviceCollection.AddSingleton<IPoweredByMiddlewareOptions, PoweredByMiddlewareOptions>();
+
+            //request reCAPTCHA service
+            serviceCollection.AddHttpClient<GoogleReCaptchaValidator>();
+
+            serviceCollection.AddScoped<IViewRenderService, ViewRenderService>();
         }
 
     }

@@ -1,7 +1,7 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Addresses;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Addresses;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -12,11 +12,6 @@ using Grand.Web.Features.Models.Common;
 using Grand.Web.Models.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Common
 {
@@ -26,7 +21,7 @@ namespace Grand.Web.Features.Handlers.Common
         private readonly ITranslationService _translationService;
         private readonly IAddressAttributeService _addressAttributeService;
         private readonly IAddressAttributeParser _addressAttributeParser;
-
+        private readonly IGroupService _groupService;
         private readonly AddressSettings _addressSettings;
 
         public GetAddressModelHandler(
@@ -34,12 +29,14 @@ namespace Grand.Web.Features.Handlers.Common
             ITranslationService translationService,
             IAddressAttributeService addressAttributeService,
             IAddressAttributeParser addressAttributeParser,
+            IGroupService groupService,
             AddressSettings addressSettings)
         {
             _countryService = countryService;
             _translationService = translationService;
             _addressAttributeService = addressAttributeService;
             _addressAttributeParser = addressAttributeParser;
+            _groupService = groupService;
             _addressSettings = addressSettings;
         }
 
@@ -73,6 +70,7 @@ namespace Grand.Web.Features.Handlers.Common
             if (!excludeProperties && address != null)
             {
                 model.Id = address.Id;
+                model.Name = address.Name;
                 model.FirstName = address.FirstName;
                 model.LastName = address.LastName;
                 model.Email = address.Email;
@@ -152,6 +150,7 @@ namespace Grand.Web.Features.Handlers.Common
             }
 
             //form fields
+            model.NameEnabled = _addressSettings.NameEnabled;
             model.CompanyEnabled = _addressSettings.CompanyEnabled;
             model.CompanyRequired = _addressSettings.CompanyRequired;
             model.VatNumberEnabled = _addressSettings.VatNumberEnabled;
@@ -171,6 +170,10 @@ namespace Grand.Web.Features.Handlers.Common
             model.FaxEnabled = _addressSettings.FaxEnabled;
             model.FaxRequired = _addressSettings.FaxRequired;
             model.NoteEnabled = _addressSettings.NoteEnabled;
+            if (customer != null && !await _groupService.IsGuest(customer))
+            {
+                model.DisallowUsersToChangeEmail = _addressSettings.DisallowUsersToChangeEmail;
+            }
             model.AddressTypeEnabled = _addressSettings.AddressTypeEnabled;
         }
 

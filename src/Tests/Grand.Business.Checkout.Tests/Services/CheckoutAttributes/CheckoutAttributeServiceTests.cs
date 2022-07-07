@@ -1,4 +1,4 @@
-﻿using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
+﻿using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
 using Grand.Business.Checkout.Services.CheckoutAttributes;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
@@ -8,9 +8,6 @@ using Grand.Infrastructure.Events;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Tests.Services.CheckoutAttributes
 {

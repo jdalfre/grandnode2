@@ -1,14 +1,9 @@
-﻿using Grand.Business.Messages.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Messages;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Messages.Services
 {

@@ -1,10 +1,9 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Marketing.Extensions;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Messages.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Stores;
@@ -13,12 +12,7 @@ using Grand.SharedKernel.Extensions;
 using Grand.Web.Commands.Models.Common;
 using Grand.Web.Models.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Common
 {
@@ -70,10 +64,12 @@ namespace Grand.Web.Commands.Handler.Common
             {
                 request.Model.ContactAttribute = attributes;
                 request.Model.ContactAttributeInfo = await _contactAttributeParser.FormatAttributes(_workContext.WorkingLanguage, attributes, _workContext.CurrentCustomer);
-                request.Model = await SendContactUs(request.Model, request.Store);
+                request.Model = await SendContactUs(request, request.Store);
 
                 //activity log
-                await _customerActivityService.InsertActivity("PublicStore.ContactUs", "", _translationService.GetResource("ActivityLog.PublicStore.ContactUs"));
+                _ = _customerActivityService.InsertActivity("PublicStore.ContactUs", "",
+                    _workContext.CurrentCustomer, request.IpAddress,
+                    _translationService.GetResource("ActivityLog.PublicStore.ContactUs"));
 
             }
             else
@@ -408,17 +404,19 @@ namespace Grand.Web.Commands.Handler.Common
             return model;
         }
 
-        private async Task<ContactUsModel> SendContactUs(ContactUsModel model, Store store)
+        private async Task<ContactUsModel> SendContactUs(ContactUsSendCommand request, Store store)
         {
-            var subject = _commonSettings.SubjectFieldOnContactUsForm ? model.Subject : null;
-            var body = FormatText.ConvertText(model.Enquiry);
+            var subject = _commonSettings.SubjectFieldOnContactUsForm ? request.Model.Subject : null;
+            var body = FormatText.ConvertText(request.Model.Enquiry);
 
-            await _messageProviderService.SendContactUsMessage(_workContext.CurrentCustomer, store, _workContext.WorkingLanguage.Id, model.Email.Trim(), model.FullName, subject, body, model.ContactAttributeInfo, model.ContactAttribute);
+            await _messageProviderService.SendContactUsMessage
+                (_workContext.CurrentCustomer, store, _workContext.WorkingLanguage.Id, request.Model.Email.Trim(), request.Model.FullName, subject, 
+                body, request.Model.ContactAttributeInfo, request.Model.ContactAttribute, request.IpAddress);
 
-            model.SuccessfullySent = true;
-            model.Result = _translationService.GetResource("ContactUs.YourEnquiryHasBeenSent");
+            request.Model.SuccessfullySent = true;
+            request.Model.Result = _translationService.GetResource("ContactUs.YourEnquiryHasBeenSent");
 
-            return model;
+            return request.Model;
         }
     }
 }

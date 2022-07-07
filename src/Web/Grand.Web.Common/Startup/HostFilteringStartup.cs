@@ -1,11 +1,11 @@
 ﻿using Grand.Domain.Data;
 using Grand.Infrastructure;
+using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Grand.Web.Common.Startup
 {
@@ -21,7 +21,11 @@ namespace Grand.Web.Common.Startup
         /// <param name="configuration">Configuration root of the application</param>
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var hosts = configuration["Hosting:AllowedHosts"]?
+            var securityconfig = new SecurityConfig();
+            configuration.GetSection("Security").Bind(securityconfig);
+
+            //configuration[
+            var hosts = securityconfig.AllowedHosts?
                         .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             if (hosts?.Length > 0)
             {

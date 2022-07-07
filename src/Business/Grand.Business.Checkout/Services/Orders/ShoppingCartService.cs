@@ -1,12 +1,12 @@
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Business.Checkout.Events.ShoppingCart;
-using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Commands.Checkout.Orders;
+using Grand.Business.Core.Events.Checkout.ShoppingCart;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -14,11 +14,7 @@ using Grand.Domain.Orders;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+using Grand.Business.Core.Utilities.Checkout;
 
 namespace Grand.Business.Checkout.Services.Orders
 {
@@ -34,6 +30,7 @@ namespace Grand.Business.Checkout.Services.Orders
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly ICheckoutAttributeParser _checkoutAttributeParser;
         private readonly ICustomerService _customerService;
+        private readonly IAclService _aclService;
         private readonly IMediator _mediator;
         private readonly IUserFieldService _userFieldService;
         private readonly IProductReservationService _productReservationService;
@@ -49,6 +46,7 @@ namespace Grand.Business.Checkout.Services.Orders
             IProductAttributeParser productAttributeParser,
             ICheckoutAttributeParser checkoutAttributeParser,
             ICustomerService customerService,
+            IAclService aclService,
             IMediator mediator,
             IUserFieldService userFieldService,
             IProductReservationService productReservationService,
@@ -60,6 +58,7 @@ namespace Grand.Business.Checkout.Services.Orders
             _productAttributeParser = productAttributeParser;
             _checkoutAttributeParser = checkoutAttributeParser;
             _customerService = customerService;
+            _aclService = aclService;
             _mediator = mediator;
             _userFieldService = userFieldService;
             _productReservationService = productReservationService;
@@ -77,17 +76,28 @@ namespace Grand.Business.Checkout.Services.Orders
         /// <param name="storeId">Store identifier; pass null to load all records</param>
         /// <param name="shoppingCartType">Shopping cart type; pass null to load all records</param>
         /// <returns>Shopping Cart</returns>
-        public IList<ShoppingCartItem> GetShoppingCart(string storeId = null, params ShoppingCartType[] shoppingCartType)
+        public virtual async Task<IList<ShoppingCartItem>> GetShoppingCart(string storeId = null, params ShoppingCartType[] shoppingCartType)
         {
-            IEnumerable<ShoppingCartItem> cart = _workContext.CurrentCustomer.ShoppingCartItems;
+            var model = new List<ShoppingCartItem>();
+            var cart = _workContext.CurrentCustomer.ShoppingCartItems.ToList();
 
             if (!string.IsNullOrEmpty(storeId))
-                cart = cart.LimitPerStore(_shoppingCartSettings.SharedCartBetweenStores, storeId);
+                cart = cart.LimitPerStore(_shoppingCartSettings.SharedCartBetweenStores, storeId).ToList();
 
             if (shoppingCartType.Length > 0)
-                cart = cart.Where(sci => shoppingCartType.Contains(sci.ShoppingCartTypeId));
+                cart = cart.Where(sci => shoppingCartType.Contains(sci.ShoppingCartTypeId)).ToList();
 
-            return cart.ToList();
+            foreach (var item in cart)
+            {
+                var product = await _productService.GetProductById(item.ProductId);
+                if (product == null || !product.Published || !_aclService.Authorize(product, _workContext.CurrentCustomer))
+                    continue;
+
+                model.Add(item);
+            }
+
+
+            return model;
         }
 
         /// <summary>
@@ -237,8 +247,7 @@ namespace Grand.Business.Checkout.Services.Orders
             else
             {
                 DateTime now = DateTime.UtcNow;
-                shoppingCartItem = new ShoppingCartItem
-                {
+                shoppingCartItem = new ShoppingCartItem {
                     ShoppingCartTypeId = shoppingCartType,
                     StoreId = storeId,
                     WarehouseId = warehouseId,
@@ -307,8 +316,7 @@ namespace Grand.Business.Checkout.Services.Orders
             await _mediator.Publish(new AddToCartEvent(customer, shoppingCartItem, product));
             if (automaticallyAddRequiredProductsIfEnabled)
             {
-                await _mediator.Send(new AddRequiredProductsCommand()
-                {
+                await _mediator.Send(new AddRequiredProductsCommand() {
                     Customer = customer,
                     Product = product,
                     ShoppingCartType = shoppingCartItem.ShoppingCartTypeId,
@@ -381,8 +389,7 @@ namespace Grand.Business.Checkout.Services.Orders
                     {
                         foreach (var item in groupToBook.Where(x => x.Date >= rentalStartDate && x.Date <= rentalEndDate))
                         {
-                            await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper
-                            {
+                            await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper {
                                 CustomerId = customer.Id,
                                 ReservationId = item.Id,
                                 ShoppingCartItemId = shoppingCartItem.Id
@@ -393,8 +400,7 @@ namespace Grand.Business.Checkout.Services.Orders
                     {
                         foreach (var item in groupToBook.Where(x => x.Date >= rentalStartDate && x.Date < rentalEndDate))
                         {
-                            await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper
-                            {
+                            await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper {
                                 CustomerId = customer.Id,
                                 ReservationId = item.Id,
                                 ShoppingCartItemId = shoppingCartItem.Id
@@ -407,8 +413,7 @@ namespace Grand.Business.Checkout.Services.Orders
 
             if (!string.IsNullOrEmpty(reservationId))
             {
-                await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper
-                {
+                await _productReservationService.InsertCustomerReservationsHelper(new CustomerReservationsHelper {
                     CustomerId = customer.Id,
                     ReservationId = reservationId,
                     ShoppingCartItemId = shoppingCartItem.Id

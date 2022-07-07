@@ -1,16 +1,13 @@
-﻿using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Storage.Extensions;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Common;
 using Grand.Domain.Media;
+using Grand.Web.Admin.Extensions;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.StaticFiles;
+using Grand.Web.Common.Extensions;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -33,15 +30,6 @@ namespace Grand.Web.Admin.Controllers
             _permissionService = permissionService;
             _mediaFileStore = mediaFileStore;
             _mediaSettings = mediaSettings;
-        }
-
-        [NonAction]
-        protected virtual IList<string> GetAllowedFileTypes()
-        {
-            if (string.IsNullOrEmpty(_mediaSettings.AllowedFileTypes))
-                return new List<string> { ".gif", ".jpg", ".jpeg", ".png", ".bmp", ".webp" };
-            else
-                return _mediaSettings.AllowedFileTypes.Split(',');
         }
 
         [HttpPost]
@@ -69,7 +57,7 @@ namespace Grand.Web.Admin.Controllers
 
             var qqFileNameParameter = "qqfilename";
             var fileName = httpPostedFile.FileName;
-            if (String.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
+            if (string.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
                 fileName = form[qqFileNameParameter].ToString();
             //remove path (passed in IE)
             fileName = Path.GetFileName(fileName);
@@ -77,10 +65,10 @@ namespace Grand.Web.Admin.Controllers
             var contentType = httpPostedFile.ContentType;
 
             var fileExtension = Path.GetExtension(fileName);
-            if (!String.IsNullOrEmpty(fileExtension))
+            if (!string.IsNullOrEmpty(fileExtension))
                 fileExtension = fileExtension.ToLowerInvariant();
 
-            if (!GetAllowedFileTypes().Contains(fileExtension))
+            if (!FileExtensions.GetAllowedMediaFileTypes(_mediaSettings.AllowedFileTypes).Contains(fileExtension))
             {
                 return Json(new
                 {
@@ -89,38 +77,9 @@ namespace Grand.Web.Admin.Controllers
                     imageUrl = ""
                 });
             }
-
-            //contentType is not always available 
-            //that's why we manually update it here
-            //http://www.sfsu.edu/training/mimetype.htm
-            if (String.IsNullOrEmpty(contentType))
+            if (string.IsNullOrEmpty(contentType))
             {
-                switch (fileExtension)
-                {
-                    case ".bmp":
-                        contentType = "image/bmp";
-                        break;
-                    case ".gif":
-                        contentType = "image/gif";
-                        break;
-                    case ".jpeg":
-                    case ".jpg":
-                    case ".jpe":
-                    case ".jfif":
-                    case ".pjpeg":
-                    case ".pjp":
-                        contentType = "image/jpeg";
-                        break;
-                    case ".png":
-                        contentType = "image/png";
-                        break;
-                    case ".tiff":
-                    case ".tif":
-                        contentType = "image/tiff";
-                        break;
-                    default:
-                        break;
-                }
+                _ = new FileExtensionContentTypeProvider().TryGetContentType(fileName, out contentType);
             }
 
             var fileBinary = httpPostedFile.GetDownloadBits();
@@ -156,7 +115,7 @@ namespace Grand.Web.Admin.Controllers
 
             var qqFileNameParameter = "qqfilename";
             var fileName = httpPostedFile.FileName;
-            if (String.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
+            if (string.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
                 fileName = form[qqFileNameParameter].ToString();
 
             fileName = Path.GetFileName(fileName);
@@ -164,10 +123,10 @@ namespace Grand.Web.Admin.Controllers
             var contentType = httpPostedFile.ContentType;
 
             var fileExtension = Path.GetExtension(fileName);
-            if (!String.IsNullOrEmpty(fileExtension))
+            if (!string.IsNullOrEmpty(fileExtension))
                 fileExtension = fileExtension.ToLowerInvariant();
 
-            if (!GetAllowedFileTypes().Contains(fileExtension))
+            if (!FileExtensions.GetAllowedMediaFileTypes(_mediaSettings.AllowedFileTypes).Contains(fileExtension))
             {
                 return Json(new
                 {
@@ -176,39 +135,11 @@ namespace Grand.Web.Admin.Controllers
                 });
             }
 
-            //contentType is not always available 
-            //that's why we manually update it here
-            //http://www.sfsu.edu/training/mimetype.htm
-            if (String.IsNullOrEmpty(contentType))
+            if (string.IsNullOrEmpty(contentType))
             {
-                switch (fileExtension)
-                {
-                    case ".bmp":
-                        contentType = "image/bmp";
-                        break;
-                    case ".gif":
-                        contentType = "image/gif";
-                        break;
-                    case ".jpeg":
-                    case ".jpg":
-                    case ".jpe":
-                    case ".jfif":
-                    case ".pjpeg":
-                    case ".pjp":
-                        contentType = "image/jpeg";
-                        break;
-                    case ".png":
-                        contentType = "image/png";
-                        break;
-                    case ".tiff":
-                    case ".tif":
-                        contentType = "image/tiff";
-                        break;
-                    default:
-                        break;
-                }
+                _ = new FileExtensionContentTypeProvider().TryGetContentType(fileName, out contentType);
             }
-            if (String.IsNullOrEmpty(contentType))
+            if (string.IsNullOrEmpty(contentType))
             {
                 return Json(new
                 {

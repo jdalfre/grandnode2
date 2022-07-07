@@ -1,6 +1,6 @@
 ﻿using Braintree;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Web.Common.Components;
 using Grand.Domain.Orders;
 using Grand.Infrastructure;
@@ -8,10 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Payments.BrainTree.Models;
 using Payments.BrainTree.Validators;
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace Payments.BrainTree.Components
 {
@@ -43,7 +40,7 @@ namespace Payments.BrainTree.Components
 
             if (_brainTreePaymentSettings.Use3DS)
             {
-                var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart);
+                var cart = await _shoppingCartService.GetShoppingCart(_workContext.CurrentStore.Id, ShoppingCartType.ShoppingCart);
 
                 if (!cart.Any())
                     throw new Exception("Your cart is empty");

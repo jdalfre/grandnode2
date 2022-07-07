@@ -1,11 +1,9 @@
-﻿using Grand.Business.Checkout.Events.ShoppingCart;
+﻿using Grand.Business.Core.Events.Checkout.ShoppingCart;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Orders;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Extensions
 {

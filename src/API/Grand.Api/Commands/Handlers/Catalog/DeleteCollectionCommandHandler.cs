@@ -1,9 +1,8 @@
-﻿using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
+﻿using Grand.Business.Core.Interfaces.Catalog.Collections;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Infrastructure;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {
@@ -12,15 +11,18 @@ namespace Grand.Api.Commands.Models.Catalog
         private readonly ICollectionService _collectionService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly ITranslationService _translationService;
+        private readonly IWorkContext _workContext;
 
         public DeleteCollectionCommandHandler(
             ICollectionService collectionService,
             ICustomerActivityService customerActivityService,
-            ITranslationService translationService)
+            ITranslationService translationService,
+            IWorkContext workContext)
         {
             _collectionService = collectionService;
             _customerActivityService = customerActivityService;
             _translationService = translationService;
+            _workContext = workContext;
         }
 
         public async Task<bool> Handle(DeleteCollectionCommand request, CancellationToken cancellationToken)
@@ -31,7 +33,7 @@ namespace Grand.Api.Commands.Models.Catalog
                 await _collectionService.DeleteCollection(collection);
 
                 //activity log
-                await _customerActivityService.InsertActivity("DeleteCollection", collection.Id, _translationService.GetResource("ActivityLog.DeleteCollection"), collection.Name);
+                _ = _customerActivityService.InsertActivity("DeleteCollection", collection.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.DeleteCollection"), collection.Name);
             }
             return true;
         }

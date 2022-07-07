@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using System;
-using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -29,8 +27,11 @@ namespace Grand.Infrastructure.Roslyn
 
         #endregion
 
-        public static void Load(ApplicationPartManager applicationPartManager, AppConfig config)
+        public static void Load(ApplicationPartManager applicationPartManager, IConfiguration configuration)
         {
+            var config = new ExtensionsConfig();
+            configuration.GetSection("Extensions").Bind(config);
+
             if (applicationPartManager == null)
                 throw new ArgumentNullException(nameof(applicationPartManager));
 

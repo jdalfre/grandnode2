@@ -1,6 +1,11 @@
 ﻿@model GeneralCommonSettingsModel
+@inject Grand.Business.Core.Interfaces.Common.Security.IPermissionService permissionService
+@using Grand.Business.Core.Utilities.Common.Security;
+@{
+    var canUpload = await permissionService.Authorize(StandardPermission.ManagePlugins);
+}
 
-    <script>
+<script>
     $(document).ready(function () {
         $("#@Html.IdFor(model => model.StoreInformationSettings.DisplayCookieInformation)").click(togglePreferenceField);
 
@@ -15,7 +20,7 @@
             $('#DisplayPrivacyPreference').hide();
         }
     }
-    </script>
+</script>
 
 <div class="form-horizontal">
     <div class="form-body">
@@ -66,8 +71,11 @@
                     </ul>
                 </div>
                 <span asp-validation-for="StoreInformationSettings.DefaultStoreTheme"></span>
-                <div class="note note-info">@Loc["Admin.Settings.GeneralCommon.DefaultStoreTheme.GetMore"] <a href="http://www.grandnode.com/extensions?category=4&utm_source=admin-panel&utm_medium=theme-settings&utm_campaign=admin-panel" target="_blank">http://www.grandnode.com/extensions</a></div>
-                <input type="button" id="importfile" class="btn yellow" value="@Loc["Admin.Configuration.Themes.Upload"]" />
+                @if (canUpload)
+                {
+                    <div class="note note-info">@Loc["Admin.Settings.GeneralCommon.DefaultStoreTheme.GetMore"] <a href="http://www.grandnode.com/extensions?category=4&utm_source=admin-panel&utm_medium=theme-settings&utm_campaign=admin-panel" target="_blank">http://www.grandnode.com/extensions</a></div>
+                    <input type="button" id="importfile" class="btn yellow" value="@Loc["Admin.Configuration.Themes.Upload"]" />
+                }
             </div>
         </div>
         <div class="form-group">
@@ -119,11 +127,11 @@
         </div>
         <div class="form-group">
             <div class="col-8 col-md-4 col-sm-4 text-right">
-                <admin-label asp-for="StoreInformationSettings.LogoPicture" class="control-label" />
+                <admin-label asp-for="StoreInformationSettings.LogoPictureId" class="control-label" />
             </div>
             <div class="col-4 col-md-8 col-sm-8">
-                <admin-input asp-for="StoreInformationSettings.LogoPicture" />
-                <span asp-validation-for="StoreInformationSettings.LogoPicture"></span>
+                <admin-input asp-for="StoreInformationSettings.LogoPictureId" />
+                <span asp-validation-for="StoreInformationSettings.LogoPictureId"></span>
             </div>
         </div>
         <div class="form-group">
@@ -202,6 +210,18 @@
             <div class="col-4 col-md-8 col-sm-8">
                 <admin-input asp-for="StoreInformationSettings.PinterestLink" />
                 <span asp-validation-for="StoreInformationSettings.PinterestLink"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-8 col-md-4 col-sm-4 text-right">
+                <admin-label asp-for="StoreInformationSettings.VoiceNavigation" class="control-label" />
+            </div>
+            <div class="col-4 col-md-8 col-sm-8">
+                <label class="mt-checkbox mt-checkbox-outline control control-checkbox">
+                    <admin-input asp-for="StoreInformationSettings.VoiceNavigation" />
+                    <div class="control__indicator"></div>
+                </label>
+                <span asp-validation-for="StoreInformationSettings.VoiceNavigation"></span>
             </div>
         </div>
         <div class="form-group">

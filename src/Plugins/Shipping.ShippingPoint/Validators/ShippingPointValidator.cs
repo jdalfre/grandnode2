@@ -1,8 +1,7 @@
 ﻿using FluentValidation;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Infrastructure.Validators;
 using Shipping.ShippingPoint.Models;
-using System.Collections.Generic;
 
 namespace Shipping.ShippingPoint.Validators
 {

@@ -1,9 +1,7 @@
-﻿using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Customers.Events;
+﻿using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Events.Customers;
 using Grand.Infrastructure;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Events.ShoppingCart
 {

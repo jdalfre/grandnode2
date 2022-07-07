@@ -1,17 +1,16 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Collections;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Grand.Domain.Catalog;
@@ -32,13 +31,9 @@ using Grand.Web.Models.Media;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Grand.Business.Catalog.Interfaces.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Directory;
 
 namespace Grand.Web.Features.Handlers.Products
 {
@@ -392,8 +387,10 @@ namespace Grand.Web.Features.Handlers.Products
                 AdditionalShippingCharge = product.AdditionalShippingCharge,
                 NotReturnable = product.NotReturnable,
                 EmailAFriendEnabled = _catalogSettings.EmailAFriendEnabled,
-                AskQuestionEnabled = _catalogSettings.AskQuestionEnabled,
-                AskQuestionOnProduct = _catalogSettings.AskQuestionOnProduct
+                AskQuestionOnProduct = _catalogSettings.AskQuestionOnProduct,
+                RenderCaptcha = _captchaSettings.Enabled && (_captchaSettings.ShowOnEmailProductToFriendPage 
+                                                            || _captchaSettings.ShowOnProductReviewPage 
+                                                            || _captchaSettings.ShowOnAskQuestionPage)
             };
 
             //automatically generate product description?
@@ -568,6 +565,8 @@ namespace Grand.Web.Features.Handlers.Products
                 Id = defaultPicture.PictureId,
                 ImageUrl = await _pictureService.GetPictureUrl(defaultPicture.PictureId, defaultPictureSize, !isAssociatedProduct),
                 FullSizeImageUrl = await _pictureService.GetPictureUrl(defaultPicture.PictureId, 0, !isAssociatedProduct),
+                Style = picture?.Style,
+                ExtraField = picture?.ExtraField
             };
             //"title" attribute
             defaultPictureModel.Title = (picture != null && !string.IsNullOrEmpty(picture.GetTranslation(x => x.TitleAttribute, _workContext.WorkingLanguage.Id))) ?
@@ -590,6 +589,8 @@ namespace Grand.Web.Features.Handlers.Products
                         ThumbImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId, _mediaSettings.ProductThumbPictureSizeOnProductDetailsPage),
                         ImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId, _mediaSettings.ProductDetailsPictureSize),
                         FullSizeImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId),
+                        Style = picture?.Style,
+                        ExtraField = picture?.ExtraField
                     };
                     //"title" attribute
                     pictureModel.Title = !string.IsNullOrEmpty(picture.GetTranslation(x => x.TitleAttribute, _workContext.WorkingLanguage.Id)) ?
@@ -1096,7 +1097,9 @@ namespace Grand.Web.Features.Handlers.Products
                     var pictureModel = new PictureModel {
                         Id = productPicture.PictureId,
                         ImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId, _mediaSettings.ProductBundlePictureSize),
-                        FullSizeImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId)
+                        FullSizeImageUrl = await _pictureService.GetPictureUrl(productPicture.PictureId),
+                        Style = picture?.Style,
+                        ExtraField = picture?.ExtraField
                     };
                     //"title" attribute
                     pictureModel.Title = (picture != null && !string.IsNullOrEmpty(picture.TitleAttribute)) ?

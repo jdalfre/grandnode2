@@ -1,9 +1,7 @@
-﻿using Grand.Business.Messages.Interfaces;
-using Grand.Business.System.Interfaces.ScheduleTasks;
-using System;
-using System.Threading.Tasks;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Extensions;
+﻿using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.System.ScheduleTasks;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Extensions;
 
 namespace Grand.Business.System.Services.BackgroundServices.ScheduleTasks
 {
@@ -65,7 +63,7 @@ namespace Grand.Business.System.Services.BackgroundServices.ScheduleTasks
                 }
                 catch (Exception exc)
                 {
-                    _logger.Error(string.Format("Error sending e-mail. {0}", exc.Message), exc);
+                    _ = _logger.Error(string.Format("Error sending e-mail. {0}", exc.Message), exc);
                 }
                 finally
                 {

@@ -1,7 +1,6 @@
-﻿using Grand.Business.Marketing.Extensions;
-using Grand.Business.Marketing.Interfaces.Knowledgebase;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Marketing.Knowledgebase;
 using Grand.Domain;
-using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Knowledgebase;
@@ -11,10 +10,6 @@ using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Marketing.Services.Knowledgebase
 {

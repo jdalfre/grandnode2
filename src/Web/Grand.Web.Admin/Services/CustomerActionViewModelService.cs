@@ -1,26 +1,23 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Banners;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Marketing.Interfaces.Customers;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Banners;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
+using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
 using Grand.Web.Admin.Models.Customers;
 using Grand.Web.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static Grand.Domain.Customers.CustomerAction;
 
 namespace Grand.Web.Admin.Services
 {
@@ -39,6 +36,8 @@ namespace Grand.Web.Admin.Services
         private readonly IMessageTemplateService _messageTemplateService;
         private readonly IDateTimeService _dateTimeService;
         private readonly IProductService _productService;
+        private readonly IWorkContext _workContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CustomerActionViewModelService(ICustomerService customerService,
             IGroupService groupService,
@@ -52,7 +51,9 @@ namespace Grand.Web.Admin.Services
             IInteractiveFormService interactiveFormService,
             IMessageTemplateService messageTemplateService,
             IDateTimeService dateTimeService,
-            IProductService productService)
+            IProductService productService,
+            IWorkContext workContext,
+            IHttpContextAccessor httpContextAccessor)
         {
             _customerService = customerService;
             _groupService = groupService;
@@ -67,6 +68,8 @@ namespace Grand.Web.Admin.Services
             _messageTemplateService = messageTemplateService;
             _dateTimeService = dateTimeService;
             _productService = productService;
+            _workContext = workContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public virtual async Task PrepareReactObjectModel(CustomerActionModel model)
@@ -159,7 +162,9 @@ namespace Grand.Web.Admin.Services
         {
             var customeraction = model.ToEntity(_dateTimeService);
             await _customerActionService.InsertCustomerAction(customeraction);
-            await _customerActivityService.InsertActivity("AddNewCustomerAction", customeraction.Id, _translationService.GetResource("ActivityLog.AddNewCustomerAction"), customeraction.Name);
+            _ = _customerActivityService.InsertActivity("AddNewCustomerAction", customeraction.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewCustomerAction"), customeraction.Name);
             return customeraction;
         }
         public virtual async Task<CustomerAction> UpdateCustomerActionModel(CustomerAction customeraction, CustomerActionModel model)
@@ -171,7 +176,9 @@ namespace Grand.Web.Admin.Services
 
             customeraction = model.ToEntity(customeraction, _dateTimeService);
             await _customerActionService.UpdateCustomerAction(customeraction);
-            await _customerActivityService.InsertActivity("EditCustomerAction", customeraction.Id, _translationService.GetResource("ActivityLog.EditCustomerAction"), customeraction.Name);
+            _ = _customerActivityService.InsertActivity("EditCustomerAction", customeraction.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditCustomerAction"), customeraction.Name);
             return customeraction;
         }
 
@@ -210,16 +217,20 @@ namespace Grand.Web.Admin.Services
             customerAction.Conditions.Add(condition);
             await _customerActionService.UpdateCustomerAction(customerAction);
 
-            await _customerActivityService.InsertActivity("AddNewCustomerActionCondition", customerAction.Id, _translationService.GetResource("ActivityLog.AddNewCustomerAction"), customerAction.Name);
+            _ = _customerActivityService.InsertActivity("AddNewCustomerActionCondition", customerAction.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewCustomerAction"), customerAction.Name);
             return (customerAction.Id, condition.Id);
         }
 
-        public virtual async Task<CustomerAction> UpdateCustomerActionConditionModel(CustomerAction customeraction, ActionCondition condition, CustomerActionConditionModel model)
+        public virtual async Task<CustomerAction> UpdateCustomerActionConditionModel(CustomerAction customeraction, CustomerAction.ActionCondition condition, CustomerActionConditionModel model)
         {
             condition = model.ToEntity(condition);
             await _customerActionService.UpdateCustomerAction(customeraction);
             //activity log
-            await _customerActivityService.InsertActivity("EditCustomerActionCondition", customeraction.Id, _translationService.GetResource("ActivityLog.EditCustomerActionCondition"), customeraction.Name);
+            _ = _customerActivityService.InsertActivity("EditCustomerActionCondition", customeraction.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditCustomerActionCondition"), customeraction.Name);
             return customeraction;
         }
 

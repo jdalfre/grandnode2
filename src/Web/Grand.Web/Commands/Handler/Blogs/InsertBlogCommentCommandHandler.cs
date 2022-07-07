@@ -1,16 +1,13 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Blogs;
 using Grand.Domain.Localization;
 using Grand.Web.Commands.Models.Blogs;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Blogs
 {
@@ -68,7 +65,7 @@ namespace Grand.Web.Commands.Handler.Blogs
                 await _messageProviderService.SendBlogCommentMessage(request.BlogPost, comment, _languageSettings.DefaultAdminLanguageId);
 
             //activity log
-            await _customerActivityService.InsertActivity("PublicStore.AddBlogComment", comment.Id, _translationService.GetResource("ActivityLog.PublicStore.AddBlogComment"));
+            _ = _customerActivityService.InsertActivity("PublicStore.AddBlogComment", comment.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.PublicStore.AddBlogComment"));
 
             return comment;
         }

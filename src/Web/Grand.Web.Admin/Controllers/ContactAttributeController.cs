@@ -1,10 +1,10 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Marketing.Interfaces.Contacts;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
 using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
@@ -13,9 +13,7 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Messages;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Grand.Infrastructure;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -153,7 +151,9 @@ namespace Grand.Web.Admin.Controllers
         //delete
         [HttpPost]
         [PermissionAuthorizeAction(PermissionActionName.Delete)]
-        public async Task<IActionResult> Delete(string id, [FromServices] ICustomerActivityService customerActivityService)
+        public async Task<IActionResult> Delete(string id,
+            [FromServices] IWorkContext workContext,
+            [FromServices] ICustomerActivityService customerActivityService)
         {
             if (ModelState.IsValid)
             {
@@ -161,7 +161,9 @@ namespace Grand.Web.Admin.Controllers
                 await _contactAttributeService.DeleteContactAttribute(contactAttribute);
 
                 //activity log
-                await customerActivityService.InsertActivity("DeleteContactAttribute", contactAttribute.Id, _translationService.GetResource("ActivityLog.DeleteContactAttribute"), contactAttribute.Name);
+                _ = customerActivityService.InsertActivity("DeleteContactAttribute", contactAttribute.Id,
+                    workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.DeleteContactAttribute"), contactAttribute.Name);
 
                 Success(_translationService.GetResource("Admin.Catalog.Attributes.ContactAttributes.Deleted"));
                 return RedirectToAction("List");

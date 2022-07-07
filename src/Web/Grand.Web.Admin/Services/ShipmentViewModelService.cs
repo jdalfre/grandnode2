@@ -1,13 +1,12 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Directory;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Directory;
 using Grand.Domain.Orders;
@@ -18,10 +17,6 @@ using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Orders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -42,6 +37,7 @@ namespace Grand.Web.Admin.Services
         private readonly IDownloadService _downloadService;
         private readonly IShippingService _shippingService;
         private readonly IStockQuantityService _stockQuantityService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly MeasureSettings _measureSettings;
         private readonly ShippingSettings _shippingSettings;
         private readonly ShippingProviderSettings _shippingProviderSettings;
@@ -62,6 +58,7 @@ namespace Grand.Web.Admin.Services
             IDownloadService downloadService,
             IShippingService shippingService,
             IStockQuantityService stockQuantityService,
+            IHttpContextAccessor httpContextAccessor,
             MeasureSettings measureSettings,
             ShippingSettings shippingSettings,
             ShippingProviderSettings shippingProviderSettings)
@@ -81,6 +78,7 @@ namespace Grand.Web.Admin.Services
             _downloadService = downloadService;
             _shippingService = shippingService;
             _stockQuantityService = stockQuantityService;
+            _httpContextAccessor = httpContextAccessor;
             _measureSettings = measureSettings;
             _shippingSettings = shippingSettings;
             _shippingProviderSettings = shippingProviderSettings;
@@ -290,9 +288,11 @@ namespace Grand.Web.Admin.Services
             }
         }
 
-        public virtual async Task LogShipment(string shipmentId, string message)
+        public virtual Task LogShipment(string shipmentId, string message)
         {
-            await _customerActivityService.InsertActivity("EditShipment", shipmentId, message);
+            _ = _customerActivityService.InsertActivity("EditShipment", shipmentId, 
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(), message);
+            return Task.CompletedTask;
         }
         public virtual async Task<(IEnumerable<Shipment> shipments, int totalCount)> PrepareShipments(ShipmentListModel model, int pageIndex, int pageSize)
         {

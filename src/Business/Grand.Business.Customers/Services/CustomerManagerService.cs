@@ -1,17 +1,14 @@
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Security;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Business.Customers.Extensions;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Customers.Utilities;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.SharedKernel;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Customers.Services
 {
@@ -156,17 +153,13 @@ namespace Grand.Business.Customers.Services
                 throw new ArgumentException("Can't load current customer");
 
             var result = new RegistrationResult();
-            if (request.Customer.IsSystemAccount())
-            {
-                result.AddError("System account can't be registered");
-                return result;
-            }
+            
             if (await _groupService.IsRegistered(request.Customer))
             {
                 result.AddError("Current customer is already registered");
                 return result;
             }
-            if (String.IsNullOrEmpty(request.Email))
+            if (string.IsNullOrEmpty(request.Email))
             {
                 result.AddError(_translationService.GetResource("Account.Register.Errors.EmailIsNotProvided"));
                 return result;
@@ -176,14 +169,14 @@ namespace Grand.Business.Customers.Services
                 result.AddError(_translationService.GetResource("Common.WrongEmail"));
                 return result;
             }
-            if (String.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(request.Password))
             {
                 result.AddError(_translationService.GetResource("Account.Register.Errors.PasswordIsNotProvided"));
                 return result;
             }
             if (_customerSettings.UsernamesEnabled)
             {
-                if (String.IsNullOrEmpty(request.Username))
+                if (string.IsNullOrEmpty(request.Username))
                 {
                     result.AddError(_translationService.GetResource("Account.Register.Errors.UsernameIsNotProvided"));
                     return result;

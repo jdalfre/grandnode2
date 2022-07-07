@@ -1,12 +1,10 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Business.Common.Services.Directory;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using Grand.Domain.History;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Common.Tests.Services.Directory
 {

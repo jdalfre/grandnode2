@@ -1,13 +1,11 @@
-﻿using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Localization;
 using Grand.Web.Commands.Models.Customers;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Customers
 {
@@ -42,7 +40,9 @@ namespace Grand.Web.Commands.Handler.Customers
         public async Task<bool> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
         {
             //activity log
-            await _customerActivityService.InsertActivity("PublicStore.DeleteAccount", "", _translationService.GetResource("ActivityLog.DeleteAccount"), request.Customer);
+            _ = _customerActivityService.InsertActivity("PublicStore.DeleteAccount", request.Customer.Id,
+                request.Customer, request.IpAddress,
+                 _translationService.GetResource("ActivityLog.DeleteAccount"), request.Customer);
 
             //send notification to customer
             await _messageProviderService.SendCustomerDeleteStoreOwnerMessage(request.Customer, _languageSettings.DefaultAdminLanguageId);

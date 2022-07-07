@@ -1,10 +1,8 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Business.System.Services.BackgroundServices.ScheduleTasks;
 using Grand.Domain.Directory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Tests.Services.BackgroundService
 {

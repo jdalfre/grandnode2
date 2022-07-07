@@ -1,17 +1,17 @@
-using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Catalog.Utilities;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Utilities.Catalog;
 using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.GiftVouchers;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Checkout.Utilities;
-using Grand.Business.Common.Interfaces.Directory;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Utilities.Checkout;
+using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -19,13 +19,10 @@ using Grand.Domain.Directory;
 using Grand.Domain.Discounts;
 using Grand.Domain.Orders;
 using Grand.Domain.Shipping;
+using Grand.Domain.Stores;
 using Grand.Domain.Tax;
 using Grand.Infrastructure;
 using Grand.SharedKernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Services.Orders
 {
@@ -257,7 +254,7 @@ namespace Grand.Business.Checkout.Services.Orders
         /// </summary>
         /// <param name="customer">Customer</param>
         /// <returns>Active gift vouchers</returns>
-        private async Task<IList<GiftVoucher>> GetActiveGiftVouchers(Customer customer, Currency currency)
+        private async Task<IList<GiftVoucher>> GetActiveGiftVouchers(Customer customer, Currency currency, Store store)
         {
             var result = new List<GiftVoucher>();
             if (customer == null)
@@ -269,7 +266,7 @@ namespace Grand.Business.Checkout.Services.Orders
                 var giftVouchers = await _giftVoucherService.GetAllGiftVouchers(isGiftVoucherActivated: true, giftVoucherCouponCode: couponCode);
                 foreach (var gc in giftVouchers)
                 {
-                    if (gc.IsGiftVoucherValid(currency))
+                    if (gc.IsGiftVoucherValid(currency, store))
                         result.Add(gc);
                 }
             }
@@ -885,7 +882,7 @@ namespace Grand.Business.Checkout.Services.Orders
 
             var appliedGiftVouchers = new List<AppliedGiftVoucher>();
             //we don't apply gift vouchers for recurring products
-            var giftVouchers = await GetActiveGiftVouchers(customer, _workContext.WorkingCurrency);
+            var giftVouchers = await GetActiveGiftVouchers(customer, _workContext.WorkingCurrency, _workContext.CurrentStore);
             if (giftVouchers != null)
                 foreach (var gc in giftVouchers)
                     if (resultTemp > 0)

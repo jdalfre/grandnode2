@@ -1,10 +1,9 @@
-﻿using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Customers.Extensions;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Domain.Affiliates;
 using Grand.Domain.Directory;
 using Grand.Domain.Payments;
@@ -15,10 +14,6 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Affiliates;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -63,7 +58,9 @@ namespace Grand.Web.Admin.Services
             {
                 model.Id = affiliate.Id;
                 model.Name = affiliate.Name;
-                model.Url = affiliate.GenerateUrl(_workContext);
+
+                var host = _workContext.CurrentHost == null ? _workContext.CurrentStore.Url.TrimEnd('/') : _workContext.CurrentHost.Url.TrimEnd('/');
+                model.Url = affiliate.GenerateUrl(host);
                 if (!excludeProperties)
                 {
                     model.AdminComment = affiliate.AdminComment;

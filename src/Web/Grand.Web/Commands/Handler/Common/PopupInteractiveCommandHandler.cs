@@ -1,19 +1,14 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Messages;
 using Grand.Web.Commands.Models.Common;
 using Grand.Web.Events;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Common
 {
@@ -134,7 +129,9 @@ namespace Grand.Web.Commands.Handler.Common
                 await _mediator.Publish(new PopupInteractiveEvent(_workContext.CurrentCustomer, request.Form, enquiryForm));
 
                 //activity log
-                await _customerActivityService.InsertActivity("PublicStore.InteractiveForm", form.Id, string.Format(_translationService.GetResource("ActivityLog.PublicStore.InteractiveForm"), form.Name));
+                _ = _customerActivityService.InsertActivity("PublicStore.InteractiveForm", form.Id,
+                    _workContext.CurrentCustomer, "",
+                    string.Format(_translationService.GetResource("ActivityLog.PublicStore.InteractiveForm"), form.Name));
             }
 
             return errors;

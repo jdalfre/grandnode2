@@ -1,9 +1,8 @@
 ﻿using FluentValidation;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Infrastructure.Validators;
 using Grand.Web.Admin.Models.Courses;
-using System.Collections.Generic;
 
 namespace Grand.Web.Admin.Validators.Courses
 {

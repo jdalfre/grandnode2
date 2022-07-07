@@ -1,5 +1,4 @@
 ﻿using Grand.Domain.Configuration;
-using System.Collections.Generic;
 
 namespace Grand.Domain.Catalog
 {
@@ -136,11 +135,6 @@ namespace Grand.Domain.Catalog
         public bool EmailAFriendEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether 'ask product question' feature is enabled
-        /// </summary>
-        public bool AskQuestionEnabled { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether 'contact us on the product page' feature is enabled
         /// </summary>
         public bool AskQuestionOnProduct { get; set; }
@@ -154,6 +148,12 @@ namespace Grand.Domain.Catalog
         /// Gets or sets a value indicating whether product can be reviewed only by customer who have already ordered it
         /// </summary>
         public bool ProductReviewPossibleOnlyAfterPurchasing { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether product can be reviewed only once by customer 
+        /// </summary>
+        public bool ProductReviewPossibleOnlyOnce { get; set; }
+
         /// <summary>
         /// Gets or sets a number of "Recently viewed products"
         /// </summary>

@@ -1,12 +1,9 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Customers.Utilities;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Customers;
 using Grand.Web.Commands.Models.Customers;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Customers
 {

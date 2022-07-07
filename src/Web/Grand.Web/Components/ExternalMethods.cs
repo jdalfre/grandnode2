@@ -1,10 +1,8 @@
-﻿using Grand.Business.Authentication.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Authentication;
 using Grand.Infrastructure;
 using Grand.Web.Common.Components;
 using Grand.Web.Models.Customer;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Grand.Web.ViewComponents
 {

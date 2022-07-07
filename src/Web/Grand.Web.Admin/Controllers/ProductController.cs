@@ -1,20 +1,20 @@
-﻿using Grand.Business.Catalog.Commands.Models;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Storage.Extensions;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.System.Interfaces.ExportImport;
+﻿using Grand.Business.Core.Commands.Catalog;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Business.Core.Interfaces.System.ExportImport;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Media;
 using Grand.Infrastructure;
+using Grand.Infrastructure.Extensions;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Catalog;
@@ -27,11 +27,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -1227,12 +1223,12 @@ namespace Grand.Web.Admin.Controllers
                     });
 
             var values = new List<(string pictureUrl, string pictureId)>();
-
+            var message = string.Empty;
             foreach (var file in httpPostedFiles)
             {
                 var qqFileNameParameter = "qqfilename";
                 var fileName = file.FileName;
-                if (String.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
+                if (string.IsNullOrEmpty(fileName) && form.ContainsKey(qqFileNameParameter))
                     fileName = form[qqFileNameParameter].ToString();
 
                 fileName = Path.GetFileName(fileName);
@@ -1244,10 +1240,10 @@ namespace Grand.Web.Admin.Controllers
 
                 if (string.IsNullOrEmpty(contentType))
                 {
-                    contentType = GetContentType(fileExtension);
+                    _ = new FileExtensionContentTypeProvider().TryGetContentType(fileName, out contentType);
                 }
 
-                if (GetAllowedFileTypes(mediaSettings).Contains(fileExtension))
+                if (FileExtensions.GetAllowedMediaFileTypes(mediaSettings.AllowedFileTypes).Contains(fileExtension))
                 {
                     var fileBinary = file.GetDownloadBits();
                     //insert picture
@@ -1257,44 +1253,14 @@ namespace Grand.Web.Admin.Controllers
                     values.Add((pictureUrl, picture.Id));
                     //assign picture to the product
                     await _productViewModelService.InsertProductPicture(product, picture, 0);
+
                 }
+                else
+                    message += $"Not allowed file types to import {fileName}";
             }
 
-            return Json(new { success = true, data = values });
+            return Json(new { success = values.Any(), data = values });
         }
-
-        protected virtual IList<string> GetAllowedFileTypes(MediaSettings mediaSettings)
-        {
-            if (string.IsNullOrEmpty(mediaSettings.AllowedFileTypes))
-                return new List<string> { ".gif", ".jpg", ".jpeg", ".png", ".bmp", ".webp" };
-            else
-                return mediaSettings.AllowedFileTypes.Split(',');
-        }
-        protected virtual string GetContentType(string fileExtension)
-        {
-            switch (fileExtension)
-            {
-                case ".bmp":
-                    return "image/bmp";
-                case ".gif":
-                    return "image/gif";
-                case ".jpeg":
-                case ".jpg":
-                case ".jpe":
-                case ".jfif":
-                case ".pjpeg":
-                case ".pjp":
-                    return "image/jpeg";
-                case ".png":
-                    return "image/png";
-                case ".tiff":
-                case ".tif":
-                    return "image/tiff";
-                default:
-                    return "";
-            }
-        }
-
 
         [PermissionAuthorizeAction(PermissionActionName.Preview)]
         [HttpPost]
@@ -2694,7 +2660,11 @@ namespace Grand.Web.Admin.Controllers
                 }
             }
 
+            //update fields on product
             await _mediator.Send(new UpdateIntervalPropertiesCommand() { Product = product, IncludeBothDates = model.IncBothDate, Interval = model.Interval, IntervalUnit = (IntervalUnit)model.IntervalUnit });
+
+            //event notification
+            await _mediator.EntityUpdated(product);
 
             if (!ModelState.IsValid)
             {
@@ -2941,7 +2911,9 @@ namespace Grand.Web.Admin.Controllers
                 if (string.IsNullOrEmpty(toDelete.OrderId))
                 {
                     //activity log
-                    await customerActivityService.InsertActivity("DeleteBid", toDelete.ProductId, _translationService.GetResource("ActivityLog.DeleteBid"), product.Name);
+                    _ = customerActivityService.InsertActivity("DeleteBid", toDelete.ProductId,
+                        _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                        _translationService.GetResource("ActivityLog.DeleteBid"), product.Name);
                     //delete bid
                     await _auctionService.DeleteBid(toDelete);
                     return Json("");

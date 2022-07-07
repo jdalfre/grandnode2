@@ -1,7 +1,7 @@
 ﻿@model String
-@inject Grand.Business.Common.Interfaces.Security.IPermissionService permissionService
+@inject Grand.Business.Core.Interfaces.Common.Security.IPermissionService permissionService
 @using Grand.SharedKernel.Extensions
-@using Grand.Business.Common.Services.Security
+@using Grand.Business.Core.Utilities.Common.Security
 @{
     var allowFileman = await permissionService.Authorize(StandardPermission.HtmlEditorManagePictures);
     var random = CommonHelper.GenerateRandomInteger();    
@@ -16,6 +16,7 @@
     function elfinderDialog@(random)(context) { // <------------------ +context
         var fm = $('<div/>').dialogelfinder({
             url: '@Url.Action("Connector", "ElFinder")',
+            baseUrl: '/_content/Grand.Web.Admin/administration/elfinder/',
             lang: 'en',
             width: 840,
             height: 450,
@@ -31,6 +32,7 @@
                     ['view', 'sort']
                 ]
             },
+            requestType: 'post',
             getFileCallback: function (file, fm) {
                 var fulltype = file.mime;
                 if (fulltype.includes("video")) {
@@ -64,8 +66,8 @@
             var ui = $.summernote.ui;
             // create button
             var button = ui.button({
-                contents: '<i class="fa fa-list-alt"/>@Loc["Admin.FileManager.Picture"]',
-                tooltip: 'elfinder',
+                contents: '<i class="note-icon-picture"/>',
+                tooltip: '@Loc["Admin.FileManager.Picture"]',
                 click: function () {
                     elfinderDialog@(random)();
                 }
@@ -86,7 +88,7 @@
             ],
             buttons: {
                 @if(allowFileman)
-                { 
+                {
                     <text> elfinder: FileManager, </text>
                 }
             },

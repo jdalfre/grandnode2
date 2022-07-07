@@ -1,9 +1,9 @@
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Checkout.Utilities;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Utilities.Checkout;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Orders;
@@ -11,10 +11,6 @@ using Grand.Domain.Shipping;
 using Grand.Domain.Stores;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Services.Shipping
 {
@@ -25,7 +21,6 @@ namespace Grand.Business.Checkout.Services.Shipping
     {
         #region Fields
 
-        private readonly IWarehouseService _warehouseService;
         private readonly ILogger _logger;
         private readonly ITranslationService _translationService;
         private readonly ICountryService _countryService;
@@ -41,7 +36,6 @@ namespace Grand.Business.Checkout.Services.Shipping
         /// Ctor
         /// </summary>
         public ShippingService(
-            IWarehouseService warehouseService,
             ILogger logger,
             ITranslationService translationService,
             ICountryService countryService,
@@ -49,7 +43,6 @@ namespace Grand.Business.Checkout.Services.Shipping
             ShippingProviderSettings shippingProviderSettings,
             ShippingSettings shippingSettings)
         {
-            _warehouseService = warehouseService;
             _logger = logger;
             _translationService = translationService;
             _countryService = countryService;
@@ -227,7 +220,7 @@ namespace Grand.Business.Checkout.Services.Shipping
                     foreach (string error in getShippingOptionResponse.Errors)
                     {
                         result.AddError(error);
-                        _logger.Warning(string.Format("Shipping ({0}). {1}", srcm.FriendlyName, error));
+                        _ = _logger.Warning(string.Format("Shipping ({0}). {1}", srcm.FriendlyName, error));
                     }
                     //clear the shipping options in this case
                     srcmShippingOptions = new List<ShippingOption>();

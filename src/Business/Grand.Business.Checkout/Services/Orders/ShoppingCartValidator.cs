@@ -1,15 +1,14 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
+﻿using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -17,11 +16,7 @@ using Grand.Domain.Orders;
 using Grand.Infrastructure;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+using Grand.Business.Core.Utilities.Checkout;
 
 namespace Grand.Business.Checkout.Services.Orders
 {
@@ -682,8 +677,11 @@ namespace Grand.Business.Checkout.Services.Orders
             if (checkoutAttributes == null)
                 checkoutAttributes = new List<CustomAttribute>();
 
-            bool hasStandartProducts = false;
-            bool hasRecurringProducts = false;
+            var hasStandartProducts = false;
+            var hasRecurringProducts = false;
+            var hasRecurringProductsMix = false;
+
+            (RecurringCyclePeriod recurringCyclePeriod, int recurringCycleLength, int recurringTotalCycles)? recurringProducts = null;
 
             foreach (var sci in shoppingCart)
             {
@@ -695,7 +693,17 @@ namespace Grand.Business.Checkout.Services.Orders
                 }
 
                 if (product.IsRecurring)
+                {
                     hasRecurringProducts = true;
+                    if (!recurringProducts.HasValue)
+                        recurringProducts = (product.RecurringCyclePeriodId, product.RecurringCycleLength, product.RecurringTotalCycles);
+                    else
+                        if (recurringProducts.Value.recurringCyclePeriod != product.RecurringCyclePeriodId || 
+                            recurringProducts.Value.recurringCycleLength != product.RecurringCycleLength || 
+                            recurringProducts.Value.recurringTotalCycles != product.RecurringTotalCycles
+                        )
+                            hasRecurringProductsMix = true;
+                }
                 else
                     hasStandartProducts = true;
             }
@@ -703,6 +711,10 @@ namespace Grand.Business.Checkout.Services.Orders
             //don't mix standard and recurring products
             if (hasStandartProducts && hasRecurringProducts)
                 warnings.Add(_translationService.GetResource("ShoppingCart.CannotMixStandardAndAutoshipProducts"));
+
+            //don't mix recurring products
+            if (hasRecurringProducts && hasRecurringProductsMix)
+                warnings.Add(_translationService.GetResource("ShoppingCart.CannotMixRecurringProducts"));
 
             //validate checkout attributes
             if (validateCheckoutAttributes)
@@ -829,12 +841,7 @@ namespace Grand.Business.Checkout.Services.Orders
                 warnings.Add("Wishlist is disabled");
                 return warnings;
             }
-            if (customer.IsSystemAccount())
-            {
-                warnings.Add("System account can't add to cart");
-                return warnings;
-            }
-
+            
             if (quantity <= 0)
             {
                 warnings.Add(_translationService.GetResource("ShoppingCart.QuantityShouldPositive"));

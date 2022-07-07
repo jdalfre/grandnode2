@@ -1,7 +1,7 @@
-using Grand.Business.Checkout.Enum;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Utilities;
-using Grand.Business.Common.Interfaces.Configuration;
+using Grand.Business.Core.Enums.Checkout;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Utilities.Checkout;
+using Grand.Business.Core.Interfaces.Common.Configuration;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Domain.Orders;
@@ -9,10 +9,6 @@ using Grand.Domain.Payments;
 using Grand.Domain.Shipping;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Services.Payments
 {

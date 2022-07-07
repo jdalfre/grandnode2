@@ -1,14 +1,9 @@
-﻿using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Web.Commands.Models.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Common
 {

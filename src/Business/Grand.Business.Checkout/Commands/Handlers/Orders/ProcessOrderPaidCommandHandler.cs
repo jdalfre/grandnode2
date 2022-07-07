@@ -1,17 +1,12 @@
-﻿using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Business.Checkout.Events.Orders;
-using Grand.Business.Checkout.Queries.Models.Orders;
-using Grand.Business.Common.Interfaces.Pdf;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Commands.Checkout.Orders;
+using Grand.Business.Core.Events.Checkout.Orders;
+using Grand.Business.Core.Queries.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Pdf;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Domain.Localization;
 using Grand.Domain.Orders;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Commands.Handlers.Orders
 {

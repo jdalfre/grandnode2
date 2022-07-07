@@ -1,12 +1,8 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Checkout.Queries.Models.Orders;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Queries.Checkout.Orders;
 using Grand.Domain.Orders;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Queries.Handlers.Orders
 {

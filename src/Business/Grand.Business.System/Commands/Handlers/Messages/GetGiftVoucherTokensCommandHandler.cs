@@ -1,9 +1,7 @@
-﻿using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Messages.Commands.Models;
-using Grand.Business.Messages.DotLiquidDrops;
+﻿using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Commands.Messages;
+using Grand.Business.Core.Utilities.Messages.DotLiquidDrops;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Commands.Handlers.Messages
 {

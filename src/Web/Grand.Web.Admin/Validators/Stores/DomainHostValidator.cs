@@ -1,9 +1,7 @@
 ﻿using FluentValidation;
 using Grand.Infrastructure.Validators;
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Web.Admin.Models.Stores;
-using System.Collections.Generic;
-using System;
 
 namespace Grand.Web.Admin.Validators.Stores
 {

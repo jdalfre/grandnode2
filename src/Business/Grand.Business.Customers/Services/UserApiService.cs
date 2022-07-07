@@ -1,11 +1,9 @@
-﻿using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Customers;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using MediatR;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Customers.Services
 {

@@ -1,16 +1,12 @@
-﻿using Grand.Business.Checkout.Enum;
-using Grand.Business.Checkout.Interfaces.Payments;
+﻿using Grand.Business.Core.Enums.Checkout;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
 using Grand.Business.Checkout.Services.Payments;
-using Grand.Business.Common.Interfaces.Configuration;
+using Grand.Business.Core.Interfaces.Common.Configuration;
 using Grand.Domain.Orders;
 using Grand.Domain.Payments;
 using Grand.SharedKernel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Tests.Services.Payments
 {

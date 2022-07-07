@@ -2,7 +2,6 @@
 using Grand.Infrastructure.Models;
 using Grand.Web.Common.Security.Captcha;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Grand.Web.Admin.Models.Settings
@@ -54,9 +53,9 @@ namespace Grand.Web.Admin.Models.Settings
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.AllowToSelectAdminTheme")]
             public bool AllowToSelectAdminTheme { get; set; }
 
-            [UIHint("Logo")]
+            [UIHint("Picture")]
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.Logo")]
-            public string LogoPicture { get; set; }
+            public string LogoPictureId { get; set; }
 
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.DisplayCookieInformation")]
             public bool DisplayCookieInformation { get; set; }
@@ -81,7 +80,10 @@ namespace Grand.Web.Admin.Models.Settings
 
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.PinterestLink")]
             public string PinterestLink { get; set; }
-           
+
+            [GrandResourceDisplayName("Admin.Settings.GeneralCommon.VoiceNavigation")]
+            public bool VoiceNavigation { get; set; }
+
             #region Nested classes
 
             public partial class ThemeConfigurationModel
@@ -260,14 +262,20 @@ namespace Grand.Web.Admin.Models.Settings
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.CaptchaShowOnApplyVendorPage")]
             public bool CaptchaShowOnApplyVendorPage { get; set; }
 
+            [GrandResourceDisplayName("Admin.Settings.GeneralCommon.CaptchaShowOnVendorReviewPage")]
+            public bool CaptchaShowOnVendorReviewPage { get; set; }
 
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.reCaptchaPublicKey")]
-
             public string ReCaptchaPublicKey { get; set; }
 
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.reCaptchaPrivateKey")]
-
             public string ReCaptchaPrivateKey { get; set; }
+
+            [GrandResourceDisplayName("Admin.Settings.GeneralCommon.ReCaptchaTheme")]
+            public string ReCaptchaTheme { get; set; }
+
+            [GrandResourceDisplayName("Admin.Settings.GeneralCommon.ReCaptchaScore")]
+            public decimal ReCaptchaScore { get; set; }
 
             [GrandResourceDisplayName("Admin.Settings.GeneralCommon.reCaptchaVersion")]
             public GoogleReCaptchaVersion ReCaptchaVersion { get; set; }

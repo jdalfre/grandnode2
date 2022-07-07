@@ -1,15 +1,11 @@
-﻿using Grand.Business.Catalog.Interfaces.Products;
+﻿using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Queries.Catalog;
 using Grand.Domain;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Queries.Handlers
 {
@@ -154,7 +150,7 @@ namespace Grand.Business.Catalog.Queries.Handlers
                         ||
                         p.Locales.Any(x => x.LocaleKey == "Name" && x.LocaleValue != null && x.LocaleValue.ToLower().Contains(request.Keywords.ToLower()))
                         ||
-                        (request.SearchSku && p.Sku.ToLower().Contains(request.Keywords.ToLower()))
+                        (request.SearchSku && p.Sku != null && p.Sku.ToLower().Contains(request.Keywords.ToLower()))
                         );
                 else
                 {
@@ -167,7 +163,7 @@ namespace Grand.Business.Catalog.Queries.Handlers
                             ||
                             (p.Locales.Any(x => x.LocaleValue != null && x.LocaleValue.ToLower().Contains(request.Keywords.ToLower())))
                             ||
-                            (request.SearchSku && p.Sku.ToLower().Contains(request.Keywords.ToLower()))
+                            (request.SearchSku && p.Sku != null && p.Sku.ToLower().Contains(request.Keywords.ToLower()))
                             );
                 }
 
@@ -233,6 +229,11 @@ namespace Grand.Business.Catalog.Queries.Handlers
                     query = query.Where(x => x.ProductSpecificationAttributes.Any(y => y.SpecificationAttributeId == item.Key && y.AllowFiltering
                     && item.Value.Contains(y.SpecificationAttributeOptionId)));
                 }
+            }
+
+            if (request.SpecificationOptions != null && request.SpecificationOptions.Any())
+            {
+                query = query.Where(x => x.ProductSpecificationAttributes.Any(y => request.SpecificationOptions.Contains(y.SpecificationAttributeOptionId)));
             }
 
             if (request.OrderBy == ProductSortingEnum.Position && request.CategoryIds != null && request.CategoryIds.Any())
@@ -331,13 +332,13 @@ namespace Grand.Business.Catalog.Queries.Handlers
             if (request.LoadFilterableSpecificationAttributeOptionIds && !_catalogSettings.IgnoreFilterableSpecAttributeOption)
             {
                 IList<string> specyfication = new List<string>();
-                var filterSpecExists = querySpecification.Where(x => x.ProductSpecificationAttributes.Any(x=>x.AllowFiltering));
+                var filterSpecExists = querySpecification.Where(x => x.ProductSpecificationAttributes.Any(x => x.AllowFiltering));
 
                 var qspec = from p in filterSpecExists
                             from item in p.ProductSpecificationAttributes
                             select item;
 
-                var groupQuerySpec = qspec.Where(x=>x.AllowFiltering).GroupBy(x => new { SpecificationAttributeOptionId = x.SpecificationAttributeOptionId }).ToList();
+                var groupQuerySpec = qspec.Where(x => x.AllowFiltering).GroupBy(x => new { SpecificationAttributeOptionId = x.SpecificationAttributeOptionId }).ToList();
                 foreach (var item in groupQuerySpec)
                 {
                     specyfication.Add(item.Key.SpecificationAttributeOptionId);

@@ -1,11 +1,9 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.System.Commands.Models.Security;
-using Grand.Web.Common.Filters;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Web.Common.Models;
 using Grand.Web.Common.Security.Authorization;
 using Grand.Domain.Permissions;
@@ -14,10 +12,6 @@ using Grand.Web.Admin.Models.Permissions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -63,10 +57,9 @@ namespace Grand.Web.Admin.Controllers
 
             var permissionRecords = await _permissionService.GetAllPermissions();
             var customerGroups = await _groupService.GetAllCustomerGroups(showHidden: true);
-            foreach (var pr in permissionRecords.OrderBy(x=>x.Category))
+            foreach (var pr in permissionRecords.OrderBy(x => x.Category))
             {
-                model.AvailablePermissions.Add(new PermissionRecordModel
-                {
+                model.AvailablePermissions.Add(new PermissionRecordModel {
                     Name = pr.GetTranslationPermissionName(_translationService, _workContext),
                     SystemName = pr.SystemName,
                     Area = pr.Area,
@@ -90,57 +83,47 @@ namespace Grand.Web.Admin.Controllers
             return View(model);
         }
 
-        [HttpPost, ActionName("Index"), ArgumentNameFilter(KeyName = "save-continue", Argument = "install")]
-        public async Task<IActionResult> PermissionsSave(IFormCollection form, bool install)
+        [HttpPost, ActionName("Index")]
+        public async Task<IActionResult> PermissionsSave(IFormCollection form)
         {
-            if (!install)
-            {
-                var permissionRecords = await _permissionService.GetAllPermissions();
-                var customerGroups = await _groupService.GetAllCustomerGroups(showHidden: true);
+            var permissionRecords = await _permissionService.GetAllPermissions();
+            var customerGroups = await _groupService.GetAllCustomerGroups(showHidden: true);
 
-                foreach (var cr in customerGroups)
+            foreach (var cr in customerGroups)
+            {
+                string formKey = "allow_" + cr.Id;
+                var permissionRecordSystemNamesToRestrict = form[formKey].ToString() != null ? form[formKey].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList() : new List<string>();
+                foreach (var pr in permissionRecords)
                 {
-                    string formKey = "allow_" + cr.Id;
-                    var permissionRecordSystemNamesToRestrict = form[formKey].ToString() != null ? form[formKey].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList() : new List<string>();
-                    foreach (var pr in permissionRecords)
+
+                    bool allow = permissionRecordSystemNamesToRestrict.Contains(pr.SystemName);
+                    if (allow)
                     {
 
-                        bool allow = permissionRecordSystemNamesToRestrict.Contains(pr.SystemName);
-                        if (allow)
+                        if (pr.CustomerGroups.FirstOrDefault(x => x == cr.Id) == null)
                         {
-
-                            if (pr.CustomerGroups.FirstOrDefault(x => x == cr.Id) == null)
-                            {
-                                pr.CustomerGroups.Add(cr.Id);
-                                await _permissionService.UpdatePermission(pr);
-                            }
+                            pr.CustomerGroups.Add(cr.Id);
+                            await _permissionService.UpdatePermission(pr);
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (pr.CustomerGroups.FirstOrDefault(x => x == cr.Id) != null)
                         {
-                            if (pr.CustomerGroups.FirstOrDefault(x => x == cr.Id) != null)
-                            {
-                                pr.CustomerGroups.Remove(cr.Id);
-                                await _permissionService.UpdatePermission(pr);
-                            }
+                            pr.CustomerGroups.Remove(cr.Id);
+                            await _permissionService.UpdatePermission(pr);
                         }
                     }
                 }
-                Success(_translationService.GetResource("Admin.Configuration.Permissions.Updated"));
             }
-            else
-            {
-                IPermissionProvider provider = new PermissionProvider();
-                await _mediator.Send(new InstallNewPermissionsCommand() { PermissionProvider = provider });
+            Success(_translationService.GetResource("Admin.Configuration.Permissions.Updated"));
 
-                Success(_translationService.GetResource("Admin.Configuration.Permissions.Installed"));
-            }
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> PermissionsAction(string systemName, string customeGroupId)
         {
-            var model = new PermissionActionModel()
-            {
+            var model = new PermissionActionModel() {
                 SystemName = systemName,
                 CustomerGroupId = customeGroupId,
             };
@@ -194,8 +177,7 @@ namespace Grand.Web.Admin.Controllers
 
             foreach (var item in insertActions)
             {
-                await _permissionService.InsertPermissionAction(new PermissionAction()
-                {
+                await _permissionService.InsertPermissionAction(new PermissionAction() {
                     Action = item,
                     CustomerGroupId = customergroupId,
                     SystemName = systemname

@@ -1,11 +1,11 @@
-﻿using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Interfaces.Configuration;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Interfaces.Common.Configuration;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Payments;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Plugins;
@@ -15,10 +15,6 @@ using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -30,7 +26,6 @@ namespace Grand.Web.Admin.Controllers
         private readonly IPaymentService _paymentService;
         private readonly ISettingService _settingService;
         private readonly ICountryService _countryService;
-        private readonly IGroupService _groupService;
         private readonly IShippingMethodService _shippingMethodService;
         private readonly ITranslationService _translationService;
         private readonly IServiceProvider _serviceProvider;
@@ -43,7 +38,6 @@ namespace Grand.Web.Admin.Controllers
         public PaymentController(IPaymentService paymentService,
             ISettingService settingService,
             ICountryService countryService,
-            IGroupService groupService,
             IShippingMethodService shippingMethodService,
             ITranslationService translationService,
             IServiceProvider serviceProvider,
@@ -52,7 +46,6 @@ namespace Grand.Web.Admin.Controllers
             _paymentService = paymentService;
             _settingService = settingService;
             _countryService = countryService;
-            _groupService = groupService;
             _shippingMethodService = shippingMethodService;
             _translationService = translationService;
             _serviceProvider = serviceProvider;
@@ -68,7 +61,9 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Methods()
         {
-            var _paymentSettings = _settingService.LoadSetting<PaymentSettings>();
+            var storeScope = await GetActiveStore();
+
+            var _paymentSettings = _settingService.LoadSetting<PaymentSettings>(storeScope);
 
             var paymentMethodsModel = new List<PaymentMethodModel>();
             var paymentMethods = _paymentService.LoadAllPaymentMethods();
@@ -100,7 +95,8 @@ namespace Grand.Web.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> MethodUpdate(PaymentMethodModel model)
         {
-            var _paymentSettings = _settingService.LoadSetting<PaymentSettings>();
+            var storeScope = await GetActiveStore();
+            var _paymentSettings = _settingService.LoadSetting<PaymentSettings>(storeScope);
 
             var pm = _paymentService.LoadPaymentMethodBySystemName(model.SystemName);
             if (pm.IsPaymentMethodActive(_paymentSettings))
@@ -109,7 +105,7 @@ namespace Grand.Web.Admin.Controllers
                 {
                     //mark as disabled
                     _paymentSettings.ActivePaymentProviderSystemNames.Remove(pm.SystemName);
-                    await _settingService.SaveSetting(_paymentSettings);
+                    await _settingService.SaveSetting(_paymentSettings, storeScope);
                 }
             }
             else
@@ -118,7 +114,7 @@ namespace Grand.Web.Admin.Controllers
                 {
                     //mark as active
                     _paymentSettings.ActivePaymentProviderSystemNames.Add(pm.SystemName);
-                    await _settingService.SaveSetting(_paymentSettings);
+                    await _settingService.SaveSetting(_paymentSettings, storeScope);
                 }
             }
 
@@ -135,7 +131,7 @@ namespace Grand.Web.Admin.Controllers
             var model = await pm.ToModel();
             //TODO
             /*
-            model.LogoUrl = pm.PluginInfo.GetLogoUrl(_webHelper);
+            model.LogoUrl = "";
             */
             model.ConfigurationUrl = pm.ConfigurationUrl;
             return View(model);
@@ -236,9 +232,11 @@ namespace Grand.Web.Admin.Controllers
 
         #region Shipping Settings
 
-        public IActionResult Settings()
+        public async Task<IActionResult> Settings()
         {
-            var paymentSettings = _settingService.LoadSetting<PaymentSettings>();
+            var storeScope = await GetActiveStore();
+
+            var paymentSettings = _settingService.LoadSetting<PaymentSettings>(storeScope);
             var model = paymentSettings.ToModel();
 
             return View(model);
@@ -247,13 +245,17 @@ namespace Grand.Web.Admin.Controllers
         public async Task<IActionResult> Settings(PaymentSettingsModel model,
             [FromServices] ICustomerActivityService customerActivityService)
         {
-            var paymentSettings = _settingService.LoadSetting<PaymentSettings>();
+            var storeScope = await GetActiveStore();
+
+            var paymentSettings = _settingService.LoadSetting<PaymentSettings>(storeScope);
             paymentSettings = model.ToEntity(paymentSettings);
 
-            await _settingService.SaveSetting(paymentSettings);
+            await _settingService.SaveSetting(paymentSettings, storeScope);
 
             //activity log
-            await customerActivityService.InsertActivity("EditSettings", "", _translationService.GetResource("ActivityLog.EditSettings"));
+            _ = customerActivityService.InsertActivity("EditSettings", "",
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditSettings"));
 
             Success(_translationService.GetResource("Admin.Configuration.Updated"));
             return RedirectToAction("Settings");

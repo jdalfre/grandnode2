@@ -194,6 +194,8 @@ namespace Grand.Web.Admin.Models.Settings
 
         public partial class AddressSettingsModel : BaseModel
         {
+            [GrandResourceDisplayName("Admin.Settings.Customer.AddressFormFields.NameEnabled")]
+            public bool NameEnabled { get; set; }
             [GrandResourceDisplayName("Admin.Settings.Customer.AddressFormFields.AddressTypeEnabled")]
             public bool AddressTypeEnabled { get; set; }
 
@@ -245,6 +247,9 @@ namespace Grand.Web.Admin.Models.Settings
 
             [GrandResourceDisplayName("Admin.Settings.Customer.AddressFormFields.NoteEnabled")]
             public bool NoteEnabled { get; set; }
+
+            [GrandResourceDisplayName("Admin.Settings.Customer.AddressFormFields.DisallowUsersToChangeEmail")]
+            public bool DisallowUsersToChangeEmail { get; set; }
         }
 
 

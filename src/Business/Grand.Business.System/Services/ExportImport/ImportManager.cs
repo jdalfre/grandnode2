@@ -1,36 +1,32 @@
-using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Collections;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Seo;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.System.Interfaces.ExportImport;
-using Grand.Business.System.Utilities;
-using Grand.Infrastructure;
+using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Collections;
+using Grand.Business.Core.Interfaces.Catalog.Directory;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Seo;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Business.Core.Interfaces.System.ExportImport;
+using Grand.Business.Core.Utilities.System;
 using Grand.Domain.Catalog;
 using Grand.Domain.Directory;
 using Grand.Domain.Media;
 using Grand.Domain.Messages;
 using Grand.Domain.Seo;
 using Grand.Domain.Shipping;
+using Grand.Domain.Stores;
 using Grand.Domain.Tax;
 using Grand.SharedKernel;
 using Microsoft.AspNetCore.StaticFiles;
 using NPOI.XSSF.UserModel;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Grand.Business.Catalog.Interfaces.Brands;
-using Grand.Domain.Stores;
-using Grand.Business.Common.Interfaces.Stores;
+using Grand.Business.System.Utilities.System;
 
 namespace Grand.Business.System.Services.ExportImport
 {
@@ -49,7 +45,6 @@ namespace Grand.Business.System.Services.ExportImport
         private readonly IProductCollectionService _productCollectionService;
         private readonly IPictureService _pictureService;
         private readonly ISlugService _slugService;
-        private readonly IWorkContext _workContext;
         private readonly INewsLetterSubscriptionService _newsLetterSubscriptionService;
         private readonly INewsletterCategoryService _newsletterCategoryService;
         private readonly ICountryService _countryService;
@@ -79,7 +74,6 @@ namespace Grand.Business.System.Services.ExportImport
             IProductCollectionService productCollectionService,
             IPictureService pictureService,
             ISlugService slugService,
-            IWorkContext workContext,
             INewsLetterSubscriptionService newsLetterSubscriptionService,
             INewsletterCategoryService newsletterCategoryService,
             ICountryService countryService,
@@ -105,7 +99,6 @@ namespace Grand.Business.System.Services.ExportImport
             _productCollectionService = productCollectionService;
             _pictureService = pictureService;
             _slugService = slugService;
-            _workContext = workContext;
             _newsLetterSubscriptionService = newsLetterSubscriptionService;
             _newsletterCategoryService = newsletterCategoryService;
             _countryService = countryService;
@@ -336,7 +329,7 @@ namespace Grand.Business.System.Services.ExportImport
                         product.IsTele = property.BooleanValue;
                         break;
                     case "manageinventorymethodid":
-                        product.ManageInventoryMethodId =(ManageInventoryMethod)property.IntValue;
+                        product.ManageInventoryMethodId = (ManageInventoryMethod)property.IntValue;
                         break;
                     case "usemultiplewarehouses":
                         product.UseMultipleWarehouses = property.BooleanValue;
@@ -468,6 +461,21 @@ namespace Grand.Business.System.Services.ExportImport
                     case "height":
                         product.Height = property.DecimalValue;
                         break;
+                    case "displayorder":
+                        product.DisplayOrder = property.IntValue;
+                        break;
+                    case "displayordercategory":
+                        product.DisplayOrderCategory = property.IntValue;
+                        break;
+                    case "displayorderbrand":
+                        product.DisplayOrderBrand = property.IntValue;
+                        break;
+                    case "displayordercollection":
+                        product.DisplayOrderCollection = property.IntValue;
+                        break;
+                    case "onsale":
+                        product.OnSale = property.IntValue;
+                        break;
                 }
             }
         }
@@ -482,8 +490,7 @@ namespace Grand.Business.System.Services.ExportImport
                     var category = await _categoryService.GetCategoryById(id);
                     if (category != null)
                     {
-                        var productCategory = new ProductCategory
-                        {
+                        var productCategory = new ProductCategory {
                             CategoryId = category.Id,
                             IsFeaturedProduct = false,
                             DisplayOrder = 1
@@ -504,8 +511,7 @@ namespace Grand.Business.System.Services.ExportImport
                     var collection = await _collectionService.GetCollectionById(id);
                     if (collection != null)
                     {
-                        var productCollection = new ProductCollection
-                        {
+                        var productCollection = new ProductCollection {
                             CollectionId = collection.Id,
                             IsFeaturedProduct = false,
                             DisplayOrder = 1
@@ -552,10 +558,9 @@ namespace Grand.Business.System.Services.ExportImport
 
                     if (!pictureAlreadyExists)
                     {
-                        var picture = await _pictureService.InsertPicture(newPictureBinary, mimeType, _pictureService.GetPictureSeName(product.Name),"","", false, 
+                        var picture = await _pictureService.InsertPicture(newPictureBinary, mimeType, _pictureService.GetPictureSeName(product.Name), "", "", false,
                             Domain.Common.Reference.Product, product.Id);
-                        var productPicture = new ProductPicture
-                        {
+                        var productPicture = new ProductPicture {
                             PictureId = picture.Id,
                             DisplayOrder = 1,
                         };
@@ -569,8 +574,7 @@ namespace Grand.Business.System.Services.ExportImport
                     {
                         var mimeType = GetMimeTypeFromFilePath(picturePath);
                         var picture = await _pictureService.InsertPicture(fileBinary, mimeType, _pictureService.GetPictureSeName(product.Name), "", "", false, Domain.Common.Reference.Product, product.Id);
-                        var productPicture = new ProductPicture
-                        {
+                        var productPicture = new ProductPicture {
                             PictureId = picture.Id,
                             DisplayOrder = 1,
                         };
@@ -781,8 +785,7 @@ namespace Grand.Business.System.Services.ExportImport
             }
             else
             {
-                subscription = new NewsLetterSubscription
-                {
+                subscription = new NewsLetterSubscription {
                     Active = isActive,
                     CreatedOnUtc = DateTime.UtcNow,
                     Email = email,
@@ -940,7 +943,7 @@ namespace Grand.Business.System.Services.ExportImport
                     continue;
 
                 if (isNew)
-                {                    
+                {
                     await _productService.InsertProduct(product);
                 }
                 else
@@ -982,8 +985,9 @@ namespace Grand.Business.System.Services.ExportImport
         /// Import newsletter subscribers from TXT file
         /// </summary>
         /// <param name="stream">Stream</param>
+        /// <param name="currentStoreId">Current store ident</param>
         /// <returns>Number of imported subscribers</returns>
-        public virtual async Task<int> ImportNewsletterSubscribersFromTxt(Stream stream)
+        public virtual async Task<int> ImportNewsletterSubscribersFromTxt(Stream stream, string currentStoreId)
         {
             int count = 0;
             using (var reader = new StreamReader(stream))
@@ -999,7 +1003,7 @@ namespace Grand.Business.System.Services.ExportImport
                     bool isActive = true;
                     var categories = new List<string>();
                     bool iscategories = false;
-                    string storeId = _workContext.CurrentStore.Id;
+                    string storeId = currentStoreId;
                     //parse
                     if (tmp.Length == 1)
                     {

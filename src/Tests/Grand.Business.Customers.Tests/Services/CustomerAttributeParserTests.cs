@@ -1,13 +1,10 @@
-﻿using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Customers.Services;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Customers.Tests.Services
 {

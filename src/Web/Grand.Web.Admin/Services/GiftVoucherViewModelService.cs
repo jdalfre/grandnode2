@@ -1,10 +1,10 @@
-﻿using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Checkout.Interfaces.GiftVouchers;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Localization;
 using Grand.Domain.Orders;
@@ -12,16 +12,15 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Orders;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Grand.Business.Core.Interfaces.Common.Stores;
 
 namespace Grand.Web.Admin.Services
 {
     public partial class GiftVoucherViewModelService : IGiftVoucherViewModelService
     {
         #region Fields
+
         private readonly IGiftVoucherService _giftVoucherService;
         private readonly IOrderService _orderService;
         private readonly IPriceFormatter _priceFormatter;
@@ -33,6 +32,9 @@ namespace Grand.Web.Admin.Services
         private readonly ILanguageService _languageService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly IWorkContext _workContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IStoreService _storeService;
+
         #endregion
 
         #region Constructors
@@ -44,7 +46,9 @@ namespace Grand.Web.Admin.Services
             ICurrencyService currencyService,
             LanguageSettings languageSettings,
             ITranslationService translationService, ILanguageService languageService,
-            ICustomerActivityService customerActivityService, IWorkContext workContext)
+            ICustomerActivityService customerActivityService, IWorkContext workContext,
+            IHttpContextAccessor httpContextAccessor,
+            IStoreService storeService)
         {
             _giftVoucherService = giftVoucherService;
             _orderService = orderService;
@@ -57,21 +61,22 @@ namespace Grand.Web.Admin.Services
             _languageService = languageService;
             _customerActivityService = customerActivityService;
             _workContext = workContext;
+            _httpContextAccessor = httpContextAccessor;
+            _storeService = storeService;
         }
 
         #endregion
 
-        public virtual async Task<GiftVoucherModel> PrepareGiftVoucherModel()
+        public virtual async Task<GiftVoucherModel> PrepareGiftVoucherModel(GiftVoucherModel model = null)
         {
-            var model = new GiftVoucherModel();
+            model ??= new GiftVoucherModel();
+
             foreach (var currency in await _currencyService.GetAllCurrencies())
                 model.AvailableCurrencies.Add(new SelectListItem { Text = currency.Name, Value = currency.CurrencyCode });
-            return model;
-        }
-        public virtual async Task<GiftVoucherModel> PrepareGiftVoucherModel(GiftVoucherModel model)
-        {
-            foreach (var currency in await _currencyService.GetAllCurrencies())
-                model.AvailableCurrencies.Add(new SelectListItem { Text = currency.Name, Value = currency.CurrencyCode });
+
+            model.AvailableStores.Add(new SelectListItem { Text = _translationService.GetResource("Admin.Common.All"), Value = "" });
+            foreach (var s in (await _storeService.GetAllStores()))
+                model.AvailableStores.Add(new SelectListItem { Text = s.Shortcut, Value = s.Id.ToString() });
 
             return model;
         }
@@ -132,7 +137,9 @@ namespace Grand.Web.Admin.Services
             await _giftVoucherService.InsertGiftVoucher(giftVoucher);
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewGiftVoucher", giftVoucher.Id, _translationService.GetResource("ActivityLog.AddNewGiftVoucher"), giftVoucher.Code);
+            _ = _customerActivityService.InsertActivity("AddNewGiftVoucher", giftVoucher.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.AddNewGiftVoucher"), giftVoucher.Code);
             return giftVoucher;
         }
         public virtual async Task<Order> FillGiftVoucherModel(GiftVoucher giftVoucher, GiftVoucherModel model)
@@ -184,7 +191,9 @@ namespace Grand.Web.Admin.Services
             giftVoucher = model.ToEntity(giftVoucher, _dateTimeService);
             await _giftVoucherService.UpdateGiftVoucher(giftVoucher);
             //activity log
-            await _customerActivityService.InsertActivity("EditGiftVoucher", giftVoucher.Id, _translationService.GetResource("ActivityLog.EditGiftVoucher"), giftVoucher.Code);
+            _ = _customerActivityService.InsertActivity("EditGiftVoucher", giftVoucher.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditGiftVoucher"), giftVoucher.Code);
 
             return giftVoucher;
         }
@@ -192,11 +201,14 @@ namespace Grand.Web.Admin.Services
         {
             await _giftVoucherService.DeleteGiftVoucher(giftVoucher);
             //activity log
-            await _customerActivityService.InsertActivity("DeleteGiftVoucher", giftVoucher.Id, _translationService.GetResource("ActivityLog.DeleteGiftVoucher"), giftVoucher.Code);
+            _ = _customerActivityService.InsertActivity("DeleteGiftVoucher", giftVoucher.Id,
+                _workContext.CurrentCustomer, _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.DeleteGiftVoucher"), giftVoucher.Code);
         }
         public virtual async Task<GiftVoucherModel> PrepareGiftVoucherModel(GiftVoucher giftVoucher)
         {
             var model = giftVoucher.ToModel(_dateTimeService);
+            model = await PrepareGiftVoucherModel(model);
             Order order = null;
             if (giftVoucher.PurchasedWithOrderItem != null)
                 order = await _orderService.GetOrderByOrderItemId(giftVoucher.PurchasedWithOrderItem.Id);

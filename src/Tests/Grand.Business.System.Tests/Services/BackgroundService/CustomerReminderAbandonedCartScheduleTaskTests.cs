@@ -1,8 +1,7 @@
-﻿using Grand.Business.Marketing.Interfaces.Customers;
+﻿using Grand.Business.Core.Interfaces.Marketing.Customers;
 using Grand.Business.System.Services.BackgroundServices.ScheduleTasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Tests.Services.BackgroundService
 {

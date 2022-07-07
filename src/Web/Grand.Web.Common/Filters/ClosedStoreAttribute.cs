@@ -1,6 +1,6 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Data;
 using Grand.Domain.Stores;
 using Grand.Infrastructure;
@@ -8,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Filters
 {

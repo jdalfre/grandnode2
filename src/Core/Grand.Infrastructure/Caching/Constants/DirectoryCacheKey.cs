@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Grand.Infrastructure.Caching.Constants
+﻿namespace Grand.Infrastructure.Caching.Constants
 {
     public static partial class CacheKey
     {
@@ -93,6 +89,25 @@ namespace Grand.Infrastructure.Caching.Constants
         /// Key pattern to clear cache
         /// </summary>
         public static string MEASUREUNITS_PATTERN_KEY => "Grand.measureunit.";
+
+        #endregion
+
+        #region Robots.txt
+
+        /// <summary>
+        /// Key for caching
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        public static string ROBOTS_ALL_KEY => "Grand.robots.";
+
+        /// <summary>
+        /// Key for caching by store id
+        /// </summary>
+        /// <remarks>
+        /// {0} : store ID
+        /// </remarks>
+        public static string ROBOTS_BY_STORE => "Grand.robots.id-{0}";
 
         #endregion
 

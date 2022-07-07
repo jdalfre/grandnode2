@@ -1,20 +1,15 @@
-﻿using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Interfaces.Stores;
+﻿using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Common;
 using Grand.Domain.Shipping;
 using Grand.Web.Features.Models.Checkout;
 using Grand.Web.Features.Models.Common;
 using Grand.Web.Models.Checkout;
 using MediatR;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Checkout
 {
@@ -30,6 +25,7 @@ namespace Grand.Web.Features.Handlers.Checkout
         private readonly IAclService _aclService;
         private readonly IMediator _mediator;
         private readonly ShippingSettings _shippingSettings;
+        private readonly AddressSettings _addressSettings;
 
         public GetShippingAddressHandler(
             IShippingService shippingService,
@@ -41,7 +37,8 @@ namespace Grand.Web.Features.Handlers.Checkout
             ICountryService countryService,
             IAclService aclService,
             IMediator mediator,
-            ShippingSettings shippingSettings)
+            ShippingSettings shippingSettings,
+            AddressSettings addressSettings)
         {
             _shippingService = shippingService;
             _pickupPointService = pickupPointService;
@@ -53,6 +50,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             _aclService = aclService;
             _mediator = mediator;
             _shippingSettings = shippingSettings;
+            _addressSettings = addressSettings;
         }
 
         public async Task<CheckoutShippingAddressModel> Handle(GetShippingAddress request, CancellationToken cancellationToken)
@@ -71,8 +69,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             //new address
             model.NewAddress.CountryId = request.SelectedCountryId;
             var countries = await _countryService.GetAllCountriesForShipping(request.Language.Id, request.Store.Id);
-            model.NewAddress = await _mediator.Send(new GetAddressModel()
-            {
+            model.NewAddress = await _mediator.Send(new GetAddressModel() {
                 Language = request.Language,
                 Store = request.Store,
                 Model = model.NewAddress,
@@ -83,6 +80,9 @@ namespace Grand.Web.Features.Handlers.Checkout
                 Customer = request.Customer,
                 OverrideAttributes = request.OverrideAttributes,
             });
+            model.NewAddress.HideAddressType = true;
+            model.NewAddress.AddressTypeId = _addressSettings.AddressTypeEnabled ? (int)AddressType.Shipping : (int)AddressType.Any;
+
             return model;
         }
 
@@ -94,8 +94,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             {
                 foreach (var pickupPoint in pickupPoints)
                 {
-                    var pickupPointModel = new CheckoutPickupPointModel()
-                    {
+                    var pickupPointModel = new CheckoutPickupPointModel() {
                         Id = pickupPoint.Id,
                         Name = pickupPoint.Name,
                         Description = pickupPoint.Description,
@@ -143,8 +142,7 @@ namespace Grand.Web.Features.Handlers.Checkout
             }
             foreach (var address in addresses)
             {
-                var addressModel = await _mediator.Send(new GetAddressModel()
-                {
+                var addressModel = await _mediator.Send(new GetAddressModel() {
                     Language = request.Language,
                     Store = request.Store,
                     Model = null,

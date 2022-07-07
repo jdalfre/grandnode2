@@ -1,8 +1,6 @@
-﻿using Grand.Business.Catalog.Interfaces.Collections;
+﻿using Grand.Business.Core.Interfaces.Catalog.Collections;
 using Grand.Domain.Catalog;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {

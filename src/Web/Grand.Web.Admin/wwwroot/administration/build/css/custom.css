@@ -840,6 +840,14 @@ table.no-margin .progress {
     margin-bottom: 0;
 }
 
+.table thead th {
+    white-space: nowrap;
+}
+
+.table-responsive > .table-bordered {
+    width: calc(100% - 2px);
+}
+
 .main_content {
     padding: 10px 20px;
 }
@@ -1820,6 +1828,22 @@ legend {
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px
 }
+
+/* elfinder */
+
+.elfinder.ui-helper-clearfix:before {
+    content: "";
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    background-color: rgba(0,0,0,.5);
+    z-index: -1;
+}
+
+/* end elfinder */
 
 table.tile h3, table.tile h4, table.tile span {
     font-weight: bold;
@@ -6489,11 +6513,9 @@ form>h4 {
     .control__indicator_custom {
         margin-left: 12px;
     }
-    .btn-group.btn-group-devided>.btn {
-        margin-bottom: 5px;
-    }
+    
     .popup-window .btn-group.btn-group-devided > .btn {
-        margin-bottom: 0;
+       
         margin-right: 2px;
     }
 }

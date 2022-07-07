@@ -1,11 +1,11 @@
-﻿using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Queries.Models.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Commands.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Queries.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Payments;
 using Grand.Infrastructure;
 using Grand.SharedKernel;
@@ -16,10 +16,6 @@ using Grand.Web.Common.Security.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -93,12 +89,23 @@ namespace Grand.Web.Admin.Controllers
             DateTime? endDateValue = (model.EndDate == null) ? null
                 : (DateTime?)_dateTimeService.ConvertToUtcTime(model.EndDate.Value, _dateTimeService.CurrentTimeZone);
 
+            Guid? orderGuid = null;
+            if (!string.IsNullOrEmpty(model.OrderNumber))
+            {
+                if (int.TryParse(model.OrderNumber, out var ordernumber))
+                {
+                    var order = await _orderService.GetOrderByNumber(ordernumber);
+                    if (order != null)
+                        orderGuid = order.OrderGuid;
+                }
+            }
             var paymentTransactions = await _paymentTransactionService.SearchPaymentTransactions(
                 customerEmail: model.SearchCustomerEmail,
                 ts: model.SearchTransactionStatus >= 0 ? (TransactionStatus)model.SearchTransactionStatus : null,
                 createdFromUtc: startDateValue,
                 createdToUtc: endDateValue,
                 storeId: model.StoreId,
+                orderguid: orderGuid,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize);
 
@@ -177,7 +184,7 @@ namespace Grand.Web.Admin.Controllers
             var model = new PaymentTransactionModel();
             model.Id = paymentTransaction.Id;
             model.OrderCode = paymentTransaction.OrderCode;
-            model.CustomerEmail = paymentTransaction.CustomerEmail;
+            model.CustomerEmail = string.IsNullOrEmpty(paymentTransaction.CustomerEmail) ? "(null)" : paymentTransaction.CustomerEmail;
             model.CustomerId = paymentTransaction.CustomerId;
             model.CurrencyCode = paymentTransaction.CurrencyCode;
             model.TransactionAmount = paymentTransaction.TransactionAmount;

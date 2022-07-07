@@ -1,20 +1,16 @@
-﻿using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Campaigns;
-using Grand.Business.Messages.DotLiquidDrops;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Campaigns;
+using Grand.Business.Core.Utilities.Messages.DotLiquidDrops;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Messages;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Grand.Infrastructure;
 
 namespace Grand.Business.Marketing.Services.Campaigns
@@ -26,7 +22,6 @@ namespace Grand.Business.Marketing.Services.Campaigns
         private readonly IRepository<NewsLetterSubscription> _newsLetterSubscriptionRepository;
         private readonly IRepository<Customer> _customerRepository;
         private readonly IEmailSender _emailSender;
-        private readonly IMessageTokenProvider _messageTokenProvider;
         private readonly IQueuedEmailService _queuedEmailService;
         private readonly ICustomerService _customerService;
         private readonly IStoreService _storeService;
@@ -40,7 +35,7 @@ namespace Grand.Business.Marketing.Services.Campaigns
             IRepository<CampaignHistory> campaignHistoryRepository,
             IRepository<NewsLetterSubscription> newsLetterSubscriptionRepository,
             IRepository<Customer> customerRepository,
-            IEmailSender emailSender, IMessageTokenProvider messageTokenProvider,
+            IEmailSender emailSender, 
             IQueuedEmailService queuedEmailService,
             ICustomerService customerService, IStoreService storeService,
             IMediator mediator,
@@ -54,7 +49,6 @@ namespace Grand.Business.Marketing.Services.Campaigns
             _newsLetterSubscriptionRepository = newsLetterSubscriptionRepository;
             _customerRepository = customerRepository;
             _emailSender = emailSender;
-            _messageTokenProvider = messageTokenProvider;
             _queuedEmailService = queuedEmailService;
             _storeService = storeService;
             _customerService = customerService;
@@ -362,9 +356,7 @@ namespace Grand.Business.Marketing.Services.Campaigns
 
                 //activity log
                 if (customer != null)
-                    await _customerActivityService.InsertActivity("CustomerReminder.SendCampaign", campaign.Id, _translationService.GetResource("ActivityLog.SendCampaign"), customer, campaign.Name);
-                else
-                    await _customerActivityService.InsertActivity("CustomerReminder.SendCampaign", campaign.Id, _translationService.GetResource("ActivityLog.SendCampaign"), campaign.Name + " - " + subscription.Email);
+                    _ = _customerActivityService.InsertActivity("CustomerReminder.SendCampaign", campaign.Id, customer, "", _translationService.GetResource("ActivityLog.SendCampaign"), campaign.Name);
 
                 totalEmailsSent++;
             }

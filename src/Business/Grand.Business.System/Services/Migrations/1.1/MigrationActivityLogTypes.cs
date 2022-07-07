@@ -2,8 +2,6 @@
 using Grand.Domain.Logging;
 using Grand.Infrastructure.Migrations;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
 
 namespace Grand.Business.System.Services.Migrations._1._1
 {
@@ -11,11 +9,8 @@ namespace Grand.Business.System.Services.Migrations._1._1
     {
 
         public int Priority => 0;
-
         public DbVersion Version => new(1, 1);
-
         public Guid Identity => new("FA12110D-6C60-401F-BA7C-7B94587CA0EC");
-
         public string Name => "Add missing activity log type for brand collection";
 
         /// <summary>
@@ -55,7 +50,15 @@ namespace Grand.Business.System.Services.Migrations._1._1
                         Name = "Delete a brand"
                     });
             }
-
+            if (repository.Table.FirstOrDefault(x => x.SystemKeyword == "EditShipment") == null)
+            {
+                repository.Insert(
+                    new ActivityLogType {
+                        SystemKeyword = "EditShipment",
+                        Enabled = true,
+                        Name = "Edit a shipment"
+                    });
+            }
             return true;
         }
     }

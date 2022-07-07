@@ -1,12 +1,13 @@
-﻿using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Interfaces.Catalog.Directory;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Domain.Catalog;
 using Grand.Domain.Directory;
+using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Orders;
@@ -14,9 +15,6 @@ using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -32,8 +30,6 @@ namespace Grand.Web.Admin.Controllers
         private readonly CurrencySettings _currencySettings;
         private readonly IMeasureService _measureService;
         private readonly MeasureSettings _measureSettings;
-        private readonly IStoreService _storeService;
-        private readonly IGroupService _groupService;
         private readonly ICheckoutAttributeViewModelService _checkoutAttributeViewModelService;
 
         #endregion
@@ -47,8 +43,6 @@ namespace Grand.Web.Admin.Controllers
             CurrencySettings currencySettings,
             IMeasureService measureService,
             MeasureSettings measureSettings,
-            IStoreService storeService,
-            IGroupService groupService,
             ICheckoutAttributeViewModelService checkoutAttributeViewModelService)
         {
             _checkoutAttributeService = checkoutAttributeService;
@@ -58,8 +52,6 @@ namespace Grand.Web.Admin.Controllers
             _currencySettings = currencySettings;
             _measureService = measureService;
             _measureSettings = measureSettings;
-            _storeService = storeService;
-            _groupService = groupService;
             _checkoutAttributeViewModelService = checkoutAttributeViewModelService;
         }
 
@@ -77,8 +69,7 @@ namespace Grand.Web.Admin.Controllers
         public async Task<IActionResult> List(DataSourceRequest command)
         {
             var checkoutAttributes = await _checkoutAttributeViewModelService.PrepareCheckoutAttributeListModel();
-            var gridModel = new DataSourceResult
-            {
+            var gridModel = new DataSourceResult {
                 Data = checkoutAttributes.ToList(),
                 Total = checkoutAttributes.Count()
             };
@@ -172,13 +163,15 @@ namespace Grand.Web.Admin.Controllers
         //delete
         [HttpPost]
         [PermissionAuthorizeAction(PermissionActionName.Delete)]
-        public async Task<IActionResult> Delete(string id, [FromServices] ICustomerActivityService customerActivityService)
+        public async Task<IActionResult> Delete(string id,
+            [FromServices] IWorkContext workContext,
+            [FromServices] ICustomerActivityService customerActivityService)
         {
             var checkoutAttribute = await _checkoutAttributeService.GetCheckoutAttributeById(id);
             await _checkoutAttributeService.DeleteCheckoutAttribute(checkoutAttribute);
 
             //activity log
-            await customerActivityService.InsertActivity("DeleteCheckoutAttribute", checkoutAttribute.Id, _translationService.GetResource("ActivityLog.DeleteCheckoutAttribute"), checkoutAttribute.Name);
+            await customerActivityService.InsertActivity("DeleteCheckoutAttribute", checkoutAttribute.Id, workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(), _translationService.GetResource("ActivityLog.DeleteCheckoutAttribute"), checkoutAttribute.Name);
 
             Success(_translationService.GetResource("Admin.Orders.CheckoutAttributes.Deleted"));
             return RedirectToAction("List");
@@ -194,8 +187,7 @@ namespace Grand.Web.Admin.Controllers
         public async Task<IActionResult> ValueList(string checkoutAttributeId, DataSourceRequest command)
         {
             var checkoutAttribute = await _checkoutAttributeViewModelService.PrepareCheckoutAttributeValuesModel(checkoutAttributeId);
-            var gridModel = new DataSourceResult
-            {
+            var gridModel = new DataSourceResult {
                 Data = checkoutAttribute.ToList(),
                 Total = checkoutAttribute.Count()
             };

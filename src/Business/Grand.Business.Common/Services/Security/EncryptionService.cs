@@ -1,10 +1,6 @@
-﻿using Grand.Business.Common.Interfaces.Security;
+﻿using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Customers;
-using Grand.Domain.Security;
-using System;
-using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Grand.Business.Common.Services.Security
 {

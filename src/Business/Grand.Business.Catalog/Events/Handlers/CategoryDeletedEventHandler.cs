@@ -5,8 +5,6 @@ using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Events;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Events.Handlers
 {
@@ -34,7 +32,7 @@ namespace Grand.Business.Catalog.Events.Handlers
             await _entityUrlRepository.DeleteManyAsync(x => x.EntityId == notification.Entity.Id && x.EntityName == "Category");
 
             //delete on the product
-            await _productRepository.PullFilter(string.Empty, x => x.ProductCategories, z => z.CategoryId, notification.Entity.Id, true);
+            await _productRepository.PullFilter(string.Empty, x => x.ProductCategories, z => z.CategoryId, notification.Entity.Id);
 
             //clear cache
             await _cacheBase.RemoveByPrefix(CacheKey.PRODUCTS_PATTERN_KEY);

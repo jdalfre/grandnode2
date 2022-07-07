@@ -1,8 +1,5 @@
 ﻿using Grand.Infrastructure.Plugins;
 using Grand.Infrastructure.TypeSearchers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Grand.Infrastructure.Migrations
 {
@@ -40,7 +37,7 @@ namespace Grand.Infrastructure.Migrations
             return GetAllMigrations()
                 .Where(x => currentDbVersion.CompareTo(x.Version) >= 0)
                 .OrderBy(mg => mg.Version.ToString())
-                .OrderBy(mg => mg.Priority)
+                .ThenBy(mg => mg.Priority)
                 .ToList();
         }
     }

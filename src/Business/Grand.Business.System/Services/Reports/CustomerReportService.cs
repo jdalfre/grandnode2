@@ -1,17 +1,13 @@
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.System.Interfaces.Reports;
-using Grand.Business.System.Utilities;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.System.Reports;
+using Grand.Business.Core.Utilities.System;
 using Grand.Domain;
 using Grand.Domain.Customers;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
 using Grand.Domain.Payments;
 using Grand.Domain.Shipping;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.Reports
 {

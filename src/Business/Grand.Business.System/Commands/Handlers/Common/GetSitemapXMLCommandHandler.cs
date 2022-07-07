@@ -1,11 +1,11 @@
-﻿using Grand.Business.Catalog.Interfaces.Brands;
-using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Marketing.Interfaces.Knowledgebase;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.System.Commands.Models.Common;
+﻿using Grand.Business.Core.Interfaces.Catalog.Brands;
+using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Marketing.Knowledgebase;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Business.Core.Commands.System.Common;
 using Grand.Domain.Blogs;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
@@ -17,14 +17,7 @@ using Grand.Infrastructure.Configuration;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace Grand.Business.System.Commands.Handlers.Common

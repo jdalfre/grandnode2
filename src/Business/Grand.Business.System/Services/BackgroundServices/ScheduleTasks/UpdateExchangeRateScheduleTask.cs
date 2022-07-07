@@ -1,9 +1,7 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.System.Interfaces.ScheduleTasks;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.System.ScheduleTasks;
 using Grand.Domain.Directory;
 using Grand.Domain.Tasks;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.BackgroundServices.ScheduleTasks
 {

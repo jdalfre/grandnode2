@@ -1,4 +1,4 @@
-﻿using Grand.Business.Checkout.Interfaces.GiftVouchers;
+﻿using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
 using Grand.Business.Checkout.Services.GiftVouchers;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
@@ -6,11 +6,6 @@ using Grand.Infrastructure.Events;
 using MediatR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Tests.Services.GiftVouchers
 {

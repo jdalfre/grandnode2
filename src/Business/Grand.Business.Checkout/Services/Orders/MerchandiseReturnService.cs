@@ -1,5 +1,5 @@
-﻿using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Queries.Models.Orders;
+﻿using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Queries.Checkout.Orders;
 using Grand.Domain;
 using Grand.Domain.Data;
 using Grand.Domain.Orders;
@@ -7,10 +7,6 @@ using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Checkout.Services.Orders
 {

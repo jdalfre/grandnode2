@@ -28,14 +28,11 @@ namespace Grand.Web.Common.Startup
             //add WebMarkupMin
             services.AddHtmlMinification(configuration);
 
+            //add ApplicationInsights
+            services.AddApplicationInsights(configuration);
+
             //add and configure MVC feature
             services.AddGrandMvc(configuration);
-
-            //add pwa
-            services.AddPWA(configuration);
-
-            //add custom redirect result executor
-            services.AddGrandRedirectResultExecutor();
 
         }
 
@@ -49,7 +46,7 @@ namespace Grand.Web.Common.Startup
             //add MiniProfiler
             application.UseProfiler();
 
-            //MVC endpoint routing
+            //endpoint routing
             application.UseGrandEndpoints();
 
             //save log application started

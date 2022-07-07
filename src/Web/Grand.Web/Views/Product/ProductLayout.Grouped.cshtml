@@ -1,5 +1,4 @@
 ﻿@model ProductDetailsModel
-@using Microsoft.AspNetCore.Http.Extensions
 @inject SeoSettings seoSettings
 @inject IPageHeadBuilder pagebuilder
 
@@ -48,8 +47,8 @@
 @await Component.InvokeAsync("Widget", new { widgetZone = "productdetails_after_breadcrumb", additionalData = Model.Id })
 <div class="page product-details-page product-standard product-grouped">
     @await Component.InvokeAsync("Widget", new { widgetZone = "productdetails_top", additionalData = Model.Id })
-    <validation-observer v-slot="{ handleSubmit }">
-        <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form" ref="form" v-on:submit.prevent="handleSubmit(formSubmit($event))">
+    <validation-observer ref="ProductFormObserver">
+        <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form" ref="form" v-on:submit.prevent="formSubmitParam($event, vm.$refs.ProductFormObserver)">
             <div itemscope itemtype="http://schema.org/Product" data-productid="@Model.Id">
                 <div class="product-essential">
                     <div class="container">
@@ -98,7 +97,6 @@
                                     @await Component.InvokeAsync("Widget", new { widgetZone = "productdetails_inside_overview_buttons_before", additionalData = Model.Id })
                                     <partial name="_ProductsComparison" model="Model" />
                                     <partial name="_SendFriend" model="Model" />
-                                    <partial name="_ProductAskQuestionButton" model="Model" />
                                     @await Component.InvokeAsync("Widget", new { widgetZone = "productdetails_inside_overview_buttons_after", additionalData = Model.Id })
                                 </b-btn-group>
                                 <partial name="_ShareButton" model="Model" />
@@ -134,7 +132,7 @@
                             }
                             @if (Model.AskQuestionOnProduct)
                             {
-                                <b-tab title="@Loc["Products.ContactUs"]">
+                                <b-tab title="@Loc["Products.ContactUs"]" @if (Model.ProductAskQuestion.DisplayCaptcha) { <text> @@click="askquestion.getCaptcha()" </text> }>
                                     <partial name="_AskQuestionOnProduct" model="Model.ProductAskQuestion" />
                                 </b-tab>
                             }
@@ -150,7 +148,7 @@
                             <di class="card overflow-hidden associatedItem mb-3">
                                 <div class="row no-gutters">
                                     <div class="col-lg-3 col-md-4">
-                                        <img class="img-fluid" id="main-product-img-@variant.Id" alt="@variant.DefaultPictureModel.AlternateText" src="@variant.DefaultPictureModel.ImageUrl" class="rounded-0"/>
+                                        <img class="img-fluid" id="main-product-img-@variant.Id" alt="@variant.DefaultPictureModel.AlternateText" src="@variant.DefaultPictureModel.ImageUrl" class="rounded-0" />
                                     </div>
                                     <div class="col-lg-9 col-md-8">
                                         <div class="card-body overview" title="@variant.Name">
@@ -163,7 +161,7 @@
                                             <partial name="_Codes" model="variant" />
                                             <!--delivery-->
                                             @if ((variant.FreeShippingNotificationEnabled && Model.IsFreeShipping) || !string.IsNullOrWhiteSpace(variant.DeliveryDate)
-                                     || variant.NotReturnable || variant.AdditionalShippingCharge > 0)
+                                   || variant.NotReturnable || variant.AdditionalShippingCharge > 0)
                                             {
                                                 <partial name="_DeliveryInfo" model="variant" />
                                             }
@@ -227,9 +225,17 @@
                         }
                     </div>
                 </div>
+                @if (Model.RenderCaptcha)
+                {
+                    <partial name="_Captcha" />
+                }
             </div>
             @await Component.InvokeAsync("RelatedProducts", new { productId = Model.Id })
         </form>
     </validation-observer>
+    @if (Model.EmailAFriendEnabled)
+    {
+        @await Component.InvokeAsync("ProductEmailAFriend", new { productId = Model.Id })
+    }
     @await Component.InvokeAsync("Widget", new { widgetZone = "productdetails_bottom", additionalData = Model.Id })
 </div>

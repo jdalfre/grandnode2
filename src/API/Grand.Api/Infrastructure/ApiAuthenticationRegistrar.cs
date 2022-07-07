@@ -1,5 +1,5 @@
 ﻿using Grand.Api.Infrastructure.Extensions;
-using Grand.Business.Authentication.Interfaces;
+using Grand.Business.Core.Interfaces.Authentication;
 using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Infrastructure
 {
@@ -18,8 +16,8 @@ namespace Grand.Api.Infrastructure
         {
             builder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                var config = new ApiConfig();
-                configuration.GetSection("Api").Bind(config);
+                var config = new BackendAPIConfig();
+                configuration.GetSection("BackendAPI").Bind(config);
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = config.ValidateIssuer,
@@ -68,10 +66,10 @@ namespace Grand.Api.Infrastructure
             });
 
 
-            builder.AddJwtBearer(GrandWebApiConfig.Scheme, options =>
+            builder.AddJwtBearer(FrontendAPIConfig.Scheme, options =>
             {
-                var config = new GrandWebApiConfig();
-                configuration.GetSection("GrandWebApi").Bind(config);
+                var config = new FrontendAPIConfig();
+                configuration.GetSection("FrontendAPI").Bind(config);
                 options.TokenValidationParameters = new TokenValidationParameters {
                     ValidateIssuer = config.ValidateIssuer,
                     ValidateAudience = config.ValidateAudience,

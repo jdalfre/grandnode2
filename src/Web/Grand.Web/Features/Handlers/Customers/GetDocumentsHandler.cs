@@ -1,13 +1,10 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Marketing.Interfaces.Documents;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Marketing.Documents;
 using Grand.Domain.Documents;
 using Grand.Web.Features.Models.Customers;
 using Grand.Web.Models.Customer;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Customers
 {
@@ -38,7 +35,7 @@ namespace Grand.Web.Features.Handlers.Customers
             {
                 CustomerId = request.Customer.Id
             };
-            var documents = await _documentService.GetAll(request.Customer.Id,
+            var documents = await _documentService.GetAll(email: request.Customer.Email,
                 pageIndex: request.Command.PageNumber - 1,
                 pageSize: request.Command.PageSize);
             model.PagingContext.LoadPagedList(documents);

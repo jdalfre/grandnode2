@@ -1,10 +1,9 @@
-﻿using Grand.Business.Catalog.Commands.Models;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Commands.Catalog;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Business.System.Commands.Handlers.Catalog;
 using Grand.Domain.Catalog;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Tests.Commands
 {

@@ -1,11 +1,6 @@
 ﻿using Grand.Infrastructure.Caching.Message;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Infrastructure.Caching.Redis
 {
@@ -42,11 +37,12 @@ namespace Grand.Infrastructure.Caching.Redis
         /// <param name="publisher">publisher</param>
         public override Task RemoveByPrefix(string prefix, bool publisher = true)
         {
-            var keysToRemove = _cache.GetKeys<string>().Where(x => x.ToString().StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
-            foreach (var key in keysToRemove)
+            var entriesToRemove = _cacheEntries.Where(x => x.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+            foreach (var cacheEntrie in entriesToRemove)
             {
-                _cache.Remove(key);
+                _cache.Remove(cacheEntrie.Key);
             }
+
             if (publisher)
                 _messageBus.PublishAsync(new MessageEvent() { Key = prefix, MessageType = (int)MessageEventType.RemoveByPrefix });
 

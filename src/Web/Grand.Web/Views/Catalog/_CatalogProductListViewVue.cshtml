@@ -18,11 +18,11 @@
             </template>
         </div>
         <div class="card-body">
-            <h3 class="card-title mb-0">
+            <div class="card-title h3 mb-0">
                 <a :href="Model.Url">
                     {{Model.Name}}
                 </a>
-            </h3>
+            </div>
             <template v-if="Model.ShowSku && Model.Sku !== null">
                 <span class="sku">{{Model.Sku}}</span>
             </template>
@@ -226,7 +226,7 @@
                     </template>
                 </template>
                 <template v-if="!Model.ProductPrice.DisableAddToCompareListButton && Model.ProductType == 0">
-                    <button v-b-tooltip.hover.bottom title="@Loc["ShoppingCart.AddToCompareList"]" class="btn btn-secondary" :onclick="'AxiosCart.addproducttocomparelist(`@Url.RouteUrl("AddProductToCompare")/' + Model.Id + '`);return false;'">
+                    <button v-b-tooltip.hover.bottom title="@Loc["ShoppingCart.AddToCompareList"]" class="btn btn-secondary" :onclick="'AxiosCart.addproducttocomparelist(`'+ Model.Id +'`, `@Loc["Products.ProductHasBeenAddedToCompareList.Link"]`, `@Url.RouteUrl("CompareProducts")`)'">
                         <span class="sr-only">AddToCompareList</span>
                         <b-icon icon="shuffle"></b-icon>
                     </button>

@@ -1,21 +1,20 @@
-﻿using Grand.Business.Authentication.Interfaces;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Addresses;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Extensions;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Marketing.Interfaces.Customers;
-using Grand.Business.Marketing.Interfaces.Newsletters;
-using Grand.Business.Messages.Interfaces;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Authentication;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Addresses;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Marketing.Customers;
+using Grand.Business.Core.Interfaces.Marketing.Newsletters;
+using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -36,12 +35,7 @@ using Grand.Web.Common.Extensions;
 using Grand.Web.Common.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -799,7 +793,7 @@ namespace Grand.Web.Admin.Services
             await SaveCustomerTags(customer, ParseCustomerTags(model.CustomerTags));
 
             //activity log
-            await _customerActivityService.InsertActivity("AddNewCustomer", customer.Id, _translationService.GetResource("ActivityLog.AddNewCustomer"), customer.Id);
+            _ = _customerActivityService.InsertActivity("AddNewCustomer", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.AddNewCustomer"),  customer.Id);
 
             return customer;
         }
@@ -1020,7 +1014,7 @@ namespace Grand.Web.Admin.Services
             await SaveCustomerTags(customer, ParseCustomerTags(model.CustomerTags));
 
             //activity log
-            await _customerActivityService.InsertActivity("EditCustomer", customer.Id, _translationService.GetResource("ActivityLog.EditCustomer"), customer.Id);
+            _ = _customerActivityService.InsertActivity("EditCustomer", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.EditCustomer"), customer.Id);
             return customer;
         }
 
@@ -1037,7 +1031,7 @@ namespace Grand.Web.Admin.Services
             }
 
             //activity log
-            await _customerActivityService.InsertActivity("DeleteCustomer", customer.Id, _translationService.GetResource("ActivityLog.DeleteCustomer"), customer.Id);
+            _ = _customerActivityService.InsertActivity("DeleteCustomer", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.DeleteCustomer"), customer.Id);
         }
 
         public virtual async Task DeleteSelected(IList<string> selectedIds)
@@ -1052,7 +1046,7 @@ namespace Grand.Web.Admin.Services
                     await _customerService.DeleteCustomer(customer);
                 }
                 //activity log
-                await _customerActivityService.InsertActivity("DeleteCustomer", customer.Id, _translationService.GetResource("ActivityLog.DeleteCustomer"), customer.Id);
+                _ = _customerActivityService.InsertActivity("DeleteCustomer", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.DeleteCustomer"), customer.Id);
             }
         }
 
@@ -1082,7 +1076,7 @@ namespace Grand.Web.Admin.Services
                         null : (DateTime?)_dateTimeService.ConvertToUtcTime(model.DontSendBeforeDate.Value)
             };
             await queuedEmailService.InsertQueuedEmail(email);
-            await _customerActivityService.InsertActivity("CustomerAdmin.SendEmail", "", _translationService.GetResource("ActivityLog.SendEmailfromAdminPanel"), customer, model.Subject);
+            _ = _customerActivityService.InsertActivity("CustomerAdmin.SendEmail", "", customer, "", _translationService.GetResource("ActivityLog.SendEmailfromAdminPanel"), model.Subject);
         }
 
         public virtual async Task<IEnumerable<CustomerModel.LoyaltyPointsHistoryModel>> PrepareLoyaltyPointsHistoryModel(string customerId)
@@ -1105,7 +1099,7 @@ namespace Grand.Web.Admin.Services
         public virtual async Task<LoyaltyPointsHistory> InsertLoyaltyPointsHistory(Customer customer, string storeId, int addLoyaltyPointsValue, string addLoyaltyPointsMessage)
         {
             //activity log
-            await _customerActivityService.InsertActivity("AddLoyaltyPoints", customer.Id, _translationService.GetResource("ActivityLog.AddNewLoyaltyPoints"), customer.Email, addLoyaltyPointsValue);
+            _ = _customerActivityService.InsertActivity("AddLoyaltyPoints", customer.Id, _workContext.CurrentCustomer, "", _translationService.GetResource("ActivityLog.AddNewLoyaltyPoints"), customer.Email, addLoyaltyPointsValue);
 
             return await _loyaltyPointsService.AddLoyaltyPointsHistory(customer.Id, addLoyaltyPointsValue, storeId, addLoyaltyPointsMessage);
         }
@@ -1177,6 +1171,7 @@ namespace Grand.Web.Admin.Services
             if (model.Address == null)
                 model.Address = new AddressModel();
 
+            model.Address.NameEnabled = true;
             model.Address.FirstNameEnabled = true;
             model.Address.FirstNameRequired = true;
             model.Address.LastNameEnabled = true;
@@ -1281,7 +1276,7 @@ namespace Grand.Web.Admin.Services
             if (cart != null)
             {
                 //activity log
-                await _customerActivityService.InsertActivity("CustomerAdmin.UpdateCartCustomer", _workContext.CurrentCustomer.Id,
+                _ = _customerActivityService.InsertActivity("CustomerAdmin.UpdateCartCustomer", customer.Id,_workContext.CurrentCustomer,"",
                     _translationService.GetResource("ActivityLog.UpdateCartCustomer"), customer.Email, customer.Id, unitprice);
 
                 return await _serviceProvider.GetRequiredService<IShoppingCartService>()

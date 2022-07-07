@@ -1,15 +1,9 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.System.Interfaces.Installation;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Business.Core.Interfaces.System.Installation;
 using Grand.Domain.Catalog;
-using Grand.Domain.Directory;
 using Grand.Domain.Seo;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.System.Services.Installation
 {
@@ -28,8 +22,7 @@ namespace Grand.Business.System.Services.Installation
                 throw new Exception("Brand layout cannot be loaded");
 
             var allbrands = new List<Brand>();
-            var brandXiaomi = new Brand
-            {
+            var brandXiaomi = new Brand {
                 Name = "Xiaomi",
                 BrandLayoutId = brandLayoutInGridAndLines.Id,
                 PageSize = 6,
@@ -45,8 +38,7 @@ namespace Grand.Business.System.Services.Installation
             allbrands.Add(brandXiaomi);
 
 
-            var brandDell = new Brand
-            {
+            var brandDell = new Brand {
                 Name = "Dell",
                 BrandLayoutId = brandLayoutInGridAndLines.Id,
                 PageSize = 6,
@@ -63,8 +55,7 @@ namespace Grand.Business.System.Services.Installation
             allbrands.Add(brandDell);
 
 
-            var brandAdidas = new Brand
-            {
+            var brandAdidas = new Brand {
                 Name = "Adidas",
                 BrandLayoutId = brandLayoutInGridAndLines.Id,
                 PageSize = 6,
@@ -83,8 +74,7 @@ namespace Grand.Business.System.Services.Installation
             foreach (var brand in allbrands)
             {
                 brand.SeName = SeoExtensions.GenerateSlug(brand.Name, false, false, true);
-                await _entityUrlRepository.InsertAsync(new EntityUrl
-                {
+                await _entityUrlRepository.InsertAsync(new EntityUrl {
                     EntityId = brand.Id,
                     EntityName = "Brand",
                     LanguageId = "",

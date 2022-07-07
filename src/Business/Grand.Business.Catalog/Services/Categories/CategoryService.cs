@@ -1,6 +1,6 @@
-using Grand.Business.Catalog.Interfaces.Categories;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Security;
+using Grand.Business.Core.Interfaces.Catalog.Categories;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
@@ -11,10 +11,6 @@ using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.SharedKernel.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Categories
 {
@@ -101,7 +97,7 @@ namespace Grand.Business.Catalog.Services.Categories
                 }
             }
 
-            query = query.OrderBy(c => c.ParentCategoryId).ThenBy(c => c.DisplayOrder).ThenBy(c => c.Name);
+            query = query.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name);
 
             //pagination
             return await Task.FromResult(new PagedList<Category>(query, pageIndex, pageSize));

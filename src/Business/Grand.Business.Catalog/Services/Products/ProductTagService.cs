@@ -1,14 +1,10 @@
-using Grand.Business.Catalog.Interfaces.Products;
+using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Products
 {
@@ -166,7 +162,7 @@ namespace Grand.Business.Catalog.Services.Products
             await _productTagRepository.UpdateAsync(productTag);
 
             //update on products
-            await _productRepository.UpdateToSet(x => x.ProductTags, previouse.Name, productTag.Name, true);
+            await _productRepository.UpdateToSet(x => x.ProductTags, previouse.Name, productTag.Name);
 
             //cache
             await _cacheBase.RemoveByPrefix(CacheKey.PRODUCTTAG_PATTERN_KEY);
@@ -184,7 +180,7 @@ namespace Grand.Business.Catalog.Services.Products
                 throw new ArgumentNullException(nameof(productTag));
 
             //update product
-            await _productRepository.Pull(string.Empty, x => x.ProductTags, productTag.Name, true);
+            await _productRepository.Pull(string.Empty, x => x.ProductTags, productTag.Name);
 
             //delete tag
             await _productTagRepository.DeleteAsync(productTag);

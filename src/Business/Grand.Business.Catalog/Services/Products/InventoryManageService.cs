@@ -1,6 +1,6 @@
-﻿using Grand.Business.Catalog.Commands.Models;
-using Grand.Business.Catalog.Events.Models;
-using Grand.Business.Catalog.Interfaces.Products;
+﻿using Grand.Business.Core.Commands.Catalog;
+using Grand.Business.Core.Events.Catalog;
+using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Data;
@@ -9,10 +9,6 @@ using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Products
 {
@@ -726,7 +722,7 @@ namespace Grand.Business.Catalog.Services.Products
 
             foreach (var inventoryJournal in inventoryJournals)
             {
-                var product = _productRepository.GetById(inventoryJournal.ProductId);
+                var product = await _productRepository.GetByIdAsync(inventoryJournal.ProductId);
                 if (product == null)
                     continue;
 

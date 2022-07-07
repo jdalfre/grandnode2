@@ -1,5 +1,5 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Logging;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Logging;
 using Grand.Domain.Common;
 using Grand.Domain.Data;
 using Grand.Infrastructure;
@@ -14,16 +14,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using WebMarkupMin.AspNetCore5;
+using WebMarkupMin.AspNetCore6;
 
 namespace Grand.Web.Common.Infrastructure
 {
@@ -77,8 +75,13 @@ namespace Grand.Web.Common.Infrastructure
                             var logger = context.RequestServices.GetRequiredService<ILogger>();
                             //get current customer
                             var workContext = context.RequestServices.GetRequiredService<IWorkContext>();
+                            _ = logger.InsertLog(Domain.Logging.LogLevel.Error, exception.Message, exception.ToString(),
+                            customer: workContext.CurrentCustomer,
+                            ipAddress: context.Connection?.RemoteIpAddress?.ToString(),
+                            pageurl: context.Request?.GetDisplayUrl(),
+                            referrerUrl: context.Request?.Headers[HeaderNames.Referer]);
                             //log error
-                            logger.Error(exception.Message, exception, workContext.CurrentCustomer);
+                            _ = logger.Error(exception.Message, exception, workContext.CurrentCustomer);
                         }
                     }
                     finally
@@ -118,8 +121,13 @@ namespace Grand.Web.Common.Infrastructure
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger>();
                         //get current customer
                         var workContext = context.HttpContext.RequestServices.GetRequiredService<IWorkContext>();
-                        logger.Error($"Error 404. The requested page ({context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host}{context.HttpContext.Request.Path}) was not found",
-                            customer: workContext.CurrentCustomer);
+                        _ = logger.InsertLog(Domain.Logging.LogLevel.Error, 
+                            $"Error 404. The requested page ({context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host}{context.HttpContext.Request.Path})" +
+                            $" was not found",
+                            customer: workContext.CurrentCustomer, 
+                            ipAddress: context.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                            pageurl: context.HttpContext?.Request?.GetDisplayUrl(),
+                            referrerUrl: context.HttpContext?.Request?.Headers[HeaderNames.Referer]);
                     }
                 }
                 await Task.CompletedTask;
@@ -144,7 +152,10 @@ namespace Grand.Web.Common.Infrastructure
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger>();
                         var workContext = context.HttpContext.RequestServices.GetRequiredService<IWorkContext>();
-                        logger.Error("Error 400. Bad request", null, customer: workContext.CurrentCustomer);
+                        _ = logger.InsertLog(Domain.Logging.LogLevel.Error, "Error 400. Bad request", null, customer: workContext.CurrentCustomer,
+                            ipAddress: context.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                            pageurl: context.HttpContext?.Request?.GetDisplayUrl(),
+                            referrerUrl: context.HttpContext?.Request?.Headers[HeaderNames.Referer]);
                     }
                 }
                 return Task.CompletedTask;
@@ -223,7 +234,7 @@ namespace Grand.Web.Common.Infrastructure
                 RequestPath = new PathString("/Plugins"),
                 OnPrepareResponse = ctx =>
                 {
-                    if (!String.IsNullOrEmpty(appConfig.StaticFilesCacheControl))
+                    if (!string.IsNullOrEmpty(appConfig.StaticFilesCacheControl))
                         ctx.Context.Response.Headers.Append(HeaderNames.CacheControl, appConfig.StaticFilesCacheControl);
                 }
             });
@@ -240,9 +251,9 @@ namespace Grand.Web.Common.Infrastructure
             if (!DataSettingsManager.DatabaseIsInstalled())
                 return;
 
-            var appConfig = application.ApplicationServices.GetRequiredService<AppConfig>();
+            var performanceConfig = application.ApplicationServices.GetRequiredService<PerformanceConfig>();
             //whether MiniProfiler should be displayed
-            if (appConfig.DisplayMiniProfilerInPublicStore)
+            if (performanceConfig.DisplayMiniProfilerInPublicStore)
             {
                 application.UseMiniProfiler();
             }
@@ -260,7 +271,7 @@ namespace Grand.Web.Common.Infrastructure
 
             var serviceProvider = application.ApplicationServices;
             var logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.Information("Application started", null, null);
+            _ = logger.Information("Application started", null, null);
         }
 
         /// <summary>
@@ -312,15 +323,15 @@ namespace Grand.Web.Common.Infrastructure
                 .AddPermissionsPolicy(builder =>
                 {                    
                     builder.AddAutoplay().Self();
-                    builder.AddCamera().None();
+                    builder.AddCamera().Self();
                     builder.AddEncryptedMedia().Self();
                     builder.AddFullscreen().All();
                     builder.AddGeolocation().Self();
                     builder.AddGyroscope().None();
                     builder.AddMagnetometer().None();
-                    builder.AddMicrophone().None();
+                    builder.AddMicrophone().Self();
                     builder.AddMidi().None();
-                    builder.AddPayment().None();
+                    builder.AddPayment().Self();
                     builder.AddPictureInPicture().None();
                     builder.AddSyncXHR().None();
                     builder.AddUsb().None();

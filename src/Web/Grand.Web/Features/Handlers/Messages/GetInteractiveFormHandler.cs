@@ -1,13 +1,10 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Marketing.Interfaces.Contacts;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
 using Grand.Infrastructure;
 using Grand.Domain.Messages;
 using Grand.Web.Features.Models.Messages;
 using Grand.Web.Models.Messages;
 using MediatR;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Messages
 {

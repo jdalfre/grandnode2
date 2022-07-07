@@ -1,4 +1,4 @@
-﻿using Grand.Business.Common.Interfaces.Stores;
+﻿using Grand.Business.Core.Interfaces.Common.Stores;
 using Grand.Web.Common.Controllers;
 using Grand.Web.Common.Filters;
 using Grand.Domain.Common;
@@ -7,9 +7,8 @@ using Grand.Infrastructure;
 using Grand.Web.Admin.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Grand.Business.Core.Interfaces.Common.Directory;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -66,15 +65,25 @@ namespace Grand.Web.Admin.Controllers
         {
             var storeService = HttpContext.RequestServices.GetRequiredService<IStoreService>();
             var workContext = HttpContext.RequestServices.GetRequiredService<IWorkContext>();
+            var groupService = HttpContext.RequestServices.GetRequiredService<IGroupService>();
 
             var stores = await storeService.GetAllStores();
             if (stores.Count < 2)
                 return stores.FirstOrDefault().Id;
 
-            var storeId = workContext.CurrentCustomer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.AdminAreaStoreScopeConfiguration);
-            var store = await storeService.GetStoreById(storeId);
+            if (await groupService.IsStaff(workContext.CurrentCustomer))
+            {
+                return workContext.CurrentCustomer.StaffStoreId;
+            }
 
-            return store != null ? store.Id : "";
+            var storeId = workContext.CurrentCustomer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.AdminAreaStoreScopeConfiguration);
+            if(!string.IsNullOrEmpty(storeId))
+            {
+                var store = await storeService.GetStoreById(storeId);
+                if (store != null)
+                    return store.Id;
+            }
+            return stores.FirstOrDefault().Id;
         }
         /// <summary>
         /// Creates a <see cref="T:System.Web.Mvc.JsonResult"/> object that serializes the specified object to JavaScript Object Notation (JSON) format using the content type, content encoding, and the JSON request behavior.
@@ -90,7 +99,7 @@ namespace Grand.Web.Admin.Controllers
         public override JsonResult Json(object data)
         {
             var serializerSettings = new JsonSerializerSettings {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat 
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
             };
             return base.Json(data, serializerSettings);
         }

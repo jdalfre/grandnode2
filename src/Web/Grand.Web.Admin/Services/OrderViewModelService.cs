@@ -1,25 +1,22 @@
-﻿using Grand.Business.Catalog.Extensions;
-using Grand.Business.Catalog.Interfaces.Discounts;
-using Grand.Business.Catalog.Interfaces.Prices;
-using Grand.Business.Catalog.Interfaces.Products;
-using Grand.Business.Catalog.Interfaces.Tax;
-using Grand.Business.Checkout.Commands.Models.Orders;
-using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.GiftVouchers;
-using Grand.Business.Checkout.Interfaces.Orders;
-using Grand.Business.Checkout.Interfaces.Payments;
-using Grand.Business.Checkout.Interfaces.Shipping;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Addresses;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Extensions;
-using Grand.Business.Customers.Interfaces;
-using Grand.Business.Messages.Interfaces;
-using Grand.Business.Storage.Interfaces;
-using Grand.Business.System.Interfaces.Reports;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Catalog.Discounts;
+using Grand.Business.Core.Interfaces.Catalog.Prices;
+using Grand.Business.Core.Interfaces.Catalog.Products;
+using Grand.Business.Core.Interfaces.Catalog.Tax;
+using Grand.Business.Core.Commands.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.GiftVouchers;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Business.Core.Interfaces.Checkout.Payments;
+using Grand.Business.Core.Interfaces.Checkout.Shipping;
+using Grand.Business.Core.Interfaces.Common.Addresses;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Interfaces.Customers;
+using Grand.Business.Core.Interfaces.Messages;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Business.Core.Interfaces.System.Reports;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
@@ -37,11 +34,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -603,6 +596,7 @@ namespace Grand.Web.Admin.Services
 
             model.BillingAddress = await order.BillingAddress.ToModel(_countryService);
             model.BillingAddress.FormattedCustomAddressAttributes = await _addressAttributeParser.FormatAttributes(_workContext.WorkingLanguage, order.BillingAddress.Attributes);
+            model.BillingAddress.NameEnabled = true;
             model.BillingAddress.FirstNameEnabled = true;
             model.BillingAddress.FirstNameRequired = true;
             model.BillingAddress.LastNameEnabled = true;
@@ -641,6 +635,7 @@ namespace Grand.Web.Admin.Services
                     {
                         model.ShippingAddress = await order.ShippingAddress.ToModel(_countryService);
                         model.ShippingAddress.FormattedCustomAddressAttributes = await _addressAttributeParser.FormatAttributes(_workContext.WorkingLanguage, order.ShippingAddress.Attributes);
+                        model.ShippingAddress.NameEnabled = true;
                         model.ShippingAddress.FirstNameEnabled = true;
                         model.ShippingAddress.FirstNameRequired = true;
                         model.ShippingAddress.LastNameEnabled = true;
@@ -790,7 +785,10 @@ namespace Grand.Web.Admin.Services
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription;
                     if (product.IsRecurring)
-                        orderItemModel.RecurringInfo = string.Format(_translationService.GetResource("Admin.Orders.Products.RecurringPeriod"), product.RecurringCycleLength, product.RecurringCyclePeriodId.GetTranslationEnum(_translationService, _workContext));
+                        orderItemModel.RecurringInfo = string.Format(_translationService.GetResource("Admin.Orders.Products.RecurringPeriod"), 
+                                                                    product.RecurringCycleLength, 
+                                                                    product.RecurringCyclePeriodId.GetTranslationEnum(_translationService, _workContext),
+                                                                    product.RecurringTotalCycles);
 
                     //merchandise returns
                     orderItemModel.MerchandiseReturnIds = (await _merchandiseReturnService.SearchMerchandiseReturns(orderItemId: orderItem.Id))
@@ -897,6 +895,7 @@ namespace Grand.Web.Admin.Services
                 Address = await address.ToModel(_countryService)
             };
             model.Address.Id = address.Id;
+            model.Address.NameEnabled = true;
             model.Address.FirstNameEnabled = true;
             model.Address.FirstNameRequired = true;
             model.Address.LastNameEnabled = true;
@@ -1003,9 +1002,13 @@ namespace Grand.Web.Admin.Services
             }
         }
 
-        public virtual async Task LogEditOrder(string orderId)
+        public virtual Task LogEditOrder(string orderId)
         {
-            await _customerActivityService.InsertActivity("EditOrder", orderId, _translationService.GetResource("ActivityLog.EditOrder"), orderId);
+            var httpContextAccessor = _serviceProvider.GetRequiredService<IHttpContextAccessor>();
+            _ = _customerActivityService.InsertActivity("EditOrder", orderId,
+                _workContext.CurrentCustomer, httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.EditOrder"), orderId);
+            return Task.CompletedTask;
         }
         public virtual async Task<Address> UpdateOrderAddress(Order order, Address address, OrderAddressModel model, List<CustomAttribute> customAttributes)
         {
@@ -1021,7 +1024,7 @@ namespace Grand.Web.Admin.Services
                 CreatedOnUtc = DateTime.UtcNow,
                 OrderId = order.Id,
             });
-            await LogEditOrder(order.Id);
+            _ = LogEditOrder(order.Id);
             return address;
         }
         public virtual async Task<IList<string>> AddProductToOrderDetails(string orderId, string productId, IFormCollection form)
@@ -1241,7 +1244,7 @@ namespace Grand.Web.Admin.Services
 
                 await _mediator.Send(new InsertOrderItemCommand() { Order = order, OrderItem = orderItem, Product = product });
 
-                await LogEditOrder(order.Id);
+                _ = LogEditOrder(order.Id);
 
             }
             return warnings;

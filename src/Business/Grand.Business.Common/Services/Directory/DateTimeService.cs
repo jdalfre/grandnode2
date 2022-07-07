@@ -1,8 +1,9 @@
-using System;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Domain.Directory;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace Grand.Business.Common.Interfaces.Directory
+namespace Grand.Business.Common.Services.Directory
 {
     /// <summary>
     /// Represents a datetime service
@@ -119,10 +120,8 @@ namespace Grand.Business.Common.Interfaces.Directory
         /// <summary>
         /// Gets the current user time zone
         /// </summary>
-        public virtual TimeZoneInfo CurrentTimeZone
-        {
-            get
-            {
+        public virtual TimeZoneInfo CurrentTimeZone {
+            get {
                 if (_timeZoneInfo == null)
                 {
                     try

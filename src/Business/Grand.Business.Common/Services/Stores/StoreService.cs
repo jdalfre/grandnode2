@@ -1,14 +1,10 @@
-using Grand.Business.Common.Interfaces.Stores;
+using Grand.Business.Core.Interfaces.Common.Stores;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain.Data;
 using Grand.Domain.Stores;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace Grand.Business.Common.Services.Stores
 {

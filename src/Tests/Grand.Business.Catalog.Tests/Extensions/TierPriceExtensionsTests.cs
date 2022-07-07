@@ -1,8 +1,6 @@
-﻿using Grand.Business.Catalog.Extensions;
+﻿using Grand.Business.Core.Extensions;
 using Grand.Domain.Catalog;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Grand.Business.Catalog.Tests.Extensions
 {

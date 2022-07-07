@@ -1,12 +1,12 @@
-﻿using Grand.Business.Authentication.Interfaces;
-using Grand.Business.Checkout.Queries.Models.Orders;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Interfaces.Stores;
-using Grand.Business.Customers.Queries.Models;
-using Grand.Business.System.Interfaces.Reports;
+﻿using Grand.Business.Core.Interfaces.Authentication;
+using Grand.Business.Core.Queries.Checkout.Orders;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Common.Stores;
+using Grand.Business.Core.Queries.Customers;
+using Grand.Business.Core.Interfaces.System.Reports;
 using Grand.Domain.Customers;
 using Grand.Domain.Directory;
 using Grand.Domain.Orders;
@@ -16,10 +16,6 @@ using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Models.Home;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -222,11 +218,11 @@ namespace Grand.Web.Admin.Controllers
             var currentCustomer = _workContext.CurrentCustomer;
             if (currentCustomer == null || await _groupService.IsGuest(currentCustomer))
             {
-                _logger.Information(string.Format("Access denied to anonymous request on {0}", pageUrl));
+                _ = _logger.Information(string.Format("Access denied to anonymous request on {0}", pageUrl));
                 return View();
             }
 
-            _logger.Information(string.Format("Access denied to user #{0} '{1}' on {2}", currentCustomer.Email, currentCustomer.Email, pageUrl));
+            _ = _logger.Information(string.Format("Access denied to user #{0} '{1}' on {2}", currentCustomer.Email, currentCustomer.Email, pageUrl));
 
 
             return View();

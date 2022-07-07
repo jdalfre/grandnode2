@@ -1,14 +1,10 @@
-using Grand.Business.Catalog.Interfaces.Collections;
+using Grand.Business.Core.Interfaces.Catalog.Collections;
 using Grand.Domain.Catalog;
 using Grand.Domain.Data;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Catalog.Services.Collections
 {

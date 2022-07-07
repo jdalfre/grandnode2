@@ -56,8 +56,14 @@ namespace Grand.Web.Admin.Models.Settings
         [GrandResourceDisplayName("Admin.Settings.Vendor.DefaultAllowCustomerReview")]
         public bool DefaultAllowCustomerReview { get; set; }
 
+        [GrandResourceDisplayName("Admin.Settings.Vendor.NumberOfReview")]
+        public int NumberOfReview { get; set; }
+
         [GrandResourceDisplayName("Admin.Settings.Vendor.DefaultVendorRatingValue")]
         public int DefaultVendorRatingValue { get; set; }
+
+        [GrandResourceDisplayName("Admin.Settings.Vendor.VendorReviewPossibleOnlyOnce")]
+        public bool VendorReviewPossibleOnlyOnce { get; set; }
 
         [GrandResourceDisplayName("Admin.Settings.Vendor.DefaultVendorPageSizeOptions")]
         public string DefaultVendorPageSizeOptions { get; set; }

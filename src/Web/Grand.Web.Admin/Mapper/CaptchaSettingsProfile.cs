@@ -23,9 +23,12 @@ namespace Grand.Web.Admin.Mapper
                 .ForMember(dest => dest.CaptchaShowOnNewsCommentPage, mo => mo.MapFrom(p => p.ShowOnNewsCommentPage))
                 .ForMember(dest => dest.CaptchaShowOnProductReviewPage, mo => mo.MapFrom(p => p.ShowOnProductReviewPage))
                 .ForMember(dest => dest.CaptchaShowOnApplyVendorPage, mo => mo.MapFrom(p => p.ShowOnApplyVendorPage))
+                .ForMember(dest => dest.CaptchaShowOnVendorReviewPage, mo => mo.MapFrom(p => p.ShowOnVendorReviewPage))
                 .ForMember(dest => dest.ReCaptchaVersion, mo => mo.MapFrom(p => p.ReCaptchaVersion))
                 .ForMember(dest => dest.ReCaptchaPublicKey, mo => mo.MapFrom(p => p.ReCaptchaPublicKey))
                 .ForMember(dest => dest.ReCaptchaPrivateKey, mo => mo.MapFrom(p => p.ReCaptchaPrivateKey))
+                .ForMember(dest => dest.ReCaptchaScore, mo => mo.MapFrom(p => p.ReCaptchaScore))
+                .ForMember(dest => dest.ReCaptchaTheme, mo => mo.MapFrom(p => p.ReCaptchaTheme))
                 .ForMember(dest => dest.AvailableReCaptchaVersions, mo => mo.Ignore())
                 .ForMember(dest => dest.UserFields, mo => mo.Ignore());
 
@@ -43,6 +46,7 @@ namespace Grand.Web.Admin.Mapper
                 .ForMember(dest => dest.ShowOnNewsCommentPage, mo => mo.MapFrom(p => p.CaptchaShowOnNewsCommentPage))
                 .ForMember(dest => dest.ShowOnProductReviewPage, mo => mo.MapFrom(p => p.CaptchaShowOnProductReviewPage))
                 .ForMember(dest => dest.ShowOnApplyVendorPage, mo => mo.MapFrom(p => p.CaptchaShowOnApplyVendorPage))
+                .ForMember(dest => dest.ShowOnVendorReviewPage, mo => mo.MapFrom(p => p.CaptchaShowOnVendorReviewPage))
                 .ForMember(dest => dest.ReCaptchaVersion, mo => mo.MapFrom(p => p.ReCaptchaVersion))
                 .ForMember(dest => dest.ReCaptchaPublicKey, mo => mo.MapFrom(p => p.ReCaptchaPublicKey))
                 .ForMember(dest => dest.ReCaptchaPrivateKey, mo => mo.MapFrom(p => p.ReCaptchaPrivateKey));

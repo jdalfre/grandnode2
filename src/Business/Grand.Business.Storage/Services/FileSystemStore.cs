@@ -1,13 +1,7 @@
 ﻿//Source https://github.com/OrchardCMS/OrchardCore/tree/dev/src/OrchardCore
 
-using Grand.Business.Storage.Interfaces;
+using Grand.Business.Core.Interfaces.Storage;
 using Microsoft.Extensions.FileProviders.Physical;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Storage.Services
 {
@@ -299,6 +293,9 @@ namespace Grand.Business.Storage.Services
         {
             var physicalPath = GetPhysicalPath(path);
 
+            if (!File.Exists(physicalPath))
+                File.Create(physicalPath).Close();
+
             return File.WriteAllTextAsync(physicalPath, text, Encoding.UTF8);
         }
 
@@ -313,7 +310,7 @@ namespace Grand.Business.Storage.Services
         {
             path = this.NormalizePath(path);
 
-            var physicalPath = String.IsNullOrEmpty(path) ? _fileSystemPath : Path.Combine(_fileSystemPath, path);
+            var physicalPath = string.IsNullOrEmpty(path) ? _fileSystemPath : Path.Combine(_fileSystemPath, path);
 
             // Verify that the resulting path is inside the root file system path.
             var pathIsAllowed = Path.GetFullPath(physicalPath).StartsWith(_fileSystemPath, StringComparison.OrdinalIgnoreCase);

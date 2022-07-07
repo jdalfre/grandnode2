@@ -1,11 +1,8 @@
-﻿using Grand.Business.Common.Interfaces.Directory;
+﻿using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Domain.Data;
 using Grand.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Common.Filters
 {

@@ -3,16 +3,14 @@ using Grand.Api.Infrastructure.Extensions;
 using Grand.Api.Jwt;
 using Grand.Infrastructure.Configuration;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Handlers.Common
 {
     public class GenerateTokenCommandHandler : IRequestHandler<GenerateTokenCommand, string>
     {
-        private readonly ApiConfig _apiConfig;
+        private readonly BackendAPIConfig _apiConfig;
 
-        public GenerateTokenCommandHandler(ApiConfig apiConfig)
+        public GenerateTokenCommandHandler(BackendAPIConfig apiConfig)
         {
             _apiConfig = apiConfig;
         }

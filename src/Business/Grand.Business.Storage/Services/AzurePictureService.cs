@@ -1,17 +1,12 @@
 ﻿using Azure.Storage.Blobs;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Interfaces.Storage;
+using Grand.Domain.Data;
+using Grand.Domain.Media;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Configuration;
-using Grand.Domain.Data;
-using Grand.Domain.Media;
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Storage.Interfaces;
 
 namespace Grand.Business.Storage.Services
 {
@@ -23,8 +18,8 @@ namespace Grand.Business.Storage.Services
         #region Fields
 
         private static BlobContainerClient container = null;
+        private readonly AzureConfig _config;
 
-        private readonly AppConfig _config;
         #endregion
 
         #region Ctor
@@ -32,20 +27,20 @@ namespace Grand.Business.Storage.Services
         public AzurePictureService(IRepository<Picture> pictureRepository,
             ILogger logger,
             IMediator mediator,
-            IWebHostEnvironment hostingEnvironment,
             IWorkContext workContext,
             ICacheBase cacheBase,
             IMediaFileStore mediaFileStore,
             MediaSettings mediaSettings,
-            AppConfig config)
+            StorageSettings storageSettings,
+            AzureConfig config)
             : base(pictureRepository,
                 logger,
                 mediator,
-                hostingEnvironment,
                 workContext,
                 cacheBase,
                 mediaFileStore,
-                mediaSettings)
+                mediaSettings,
+                storageSettings)
         {
             _config = config;
 
@@ -86,7 +81,10 @@ namespace Grand.Business.Storage.Services
         /// <returns>Local picture thumb path</returns>
         protected override async Task<string> GetThumbPhysicalPath(string thumbFileName)
         {
-            return await Task.FromResult($"{_config.AzureBlobStorageEndPoint}{_config.AzureBlobStorageContainerName}/{thumbFileName}");
+            var thumbFilePath = $"{_config.AzureBlobStorageEndPoint}{_config.AzureBlobStorageContainerName}/{thumbFileName}";
+            var blobClient = container.GetBlobClient(thumbFileName);
+            bool exists = await blobClient.ExistsAsync();
+            return  exists? thumbFilePath : string.Empty;
         }
 
         /// <summary>

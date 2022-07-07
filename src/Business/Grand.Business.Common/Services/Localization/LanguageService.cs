@@ -1,14 +1,10 @@
-using Grand.Business.Common.Interfaces.Localization;
+using Grand.Business.Core.Interfaces.Common.Localization;
 using Grand.Infrastructure.Caching;
 using Grand.Infrastructure.Caching.Constants;
 using Grand.Infrastructure.Extensions;
 using Grand.Domain.Data;
 using Grand.Domain.Localization;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Business.Common.Services.Localization
 {
@@ -86,6 +82,27 @@ namespace Grand.Business.Common.Services.Localization
         {
             string key = string.Format(CacheKey.LANGUAGES_BY_ID_KEY, languageId);
             return _cacheBase.GetAsync(key, () => _languageRepository.GetByIdAsync(languageId));
+        }
+
+        /// <summary>
+        /// Gets a language
+        /// </summary>
+        /// <param name="languageCode">Language code</param>
+        /// <returns>Language</returns>
+        public virtual async Task<Language> GetLanguageByCode(string languageCode)
+        {
+            if (string.IsNullOrEmpty(languageCode))
+                throw new ArgumentNullException(nameof(languageCode));
+
+            var key = string.Format(CacheKey.LANGUAGES_BY_CODE, languageCode);
+            return await _cacheBase.GetAsync(key, async () =>
+            {
+                var query = from q in _languageRepository.Table
+                            where q.UniqueSeoCode.ToLowerInvariant() == languageCode.ToLowerInvariant()
+                            select q;
+                return await Task.FromResult(query.FirstOrDefault());
+            });
+
         }
 
         /// <summary>

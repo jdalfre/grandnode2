@@ -1,9 +1,9 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Common.Interfaces.Logging;
-using Grand.Business.Common.Services.Security;
-using Grand.Business.Marketing.Interfaces.Contacts;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Common.Logging;
+using Grand.Business.Core.Utilities.Common.Security;
+using Grand.Business.Core.Interfaces.Marketing.Contacts;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Web.Common.DataSource;
 using Grand.Web.Common.Filters;
 using Grand.Web.Common.Security.Authorization;
@@ -11,10 +11,7 @@ using Grand.Domain.Messages;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Models.Messages;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Grand.Infrastructure;
 
 namespace Grand.Web.Admin.Controllers
 {
@@ -26,18 +23,21 @@ namespace Grand.Web.Admin.Controllers
         private readonly ILanguageService _languageService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly IEmailAccountService _emailAccountService;
+        private readonly IWorkContext _workContext;
 
         public InteractiveFormController(IInteractiveFormService interactiveFormService,
             ITranslationService translationService,
             ILanguageService languageService,
             ICustomerActivityService customerActivityService,
-            IEmailAccountService emailAccountService)
+            IEmailAccountService emailAccountService,
+            IWorkContext workContext)
         {
             _interactiveFormService = interactiveFormService;
             _translationService = translationService;
             _languageService = languageService;
             _customerActivityService = customerActivityService;
             _emailAccountService = emailAccountService;
+            _workContext = workContext;
         }
 
         #region Utilities
@@ -108,7 +108,9 @@ namespace Grand.Web.Admin.Controllers
                 form.CreatedOnUtc = DateTime.UtcNow;
 
                 await _interactiveFormService.InsertForm(form);
-                await _customerActivityService.InsertActivity("InteractiveFormAdd", form.Id, _translationService.GetResource("ActivityLog.InteractiveFormAdd"), form.Name);
+                _ = _customerActivityService.InsertActivity("InteractiveFormAdd", form.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.InteractiveFormAdd"), form.Name);
 
                 Success(_translationService.GetResource("admin.marketing.InteractiveForms.Added"));
                 return continueEditing ? RedirectToAction("Edit", new { id = form.Id }) : RedirectToAction("List");
@@ -158,7 +160,9 @@ namespace Grand.Web.Admin.Controllers
                 form = model.ToEntity(form);
                 await _interactiveFormService.UpdateForm(form);
 
-                await _customerActivityService.InsertActivity("InteractiveFormEdit", form.Id, _translationService.GetResource("ActivityLog.InteractiveFormUpdate"), form.Name);
+                _ = _customerActivityService.InsertActivity("InteractiveFormEdit", form.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.InteractiveFormUpdate"), form.Name);
 
                 Success(_translationService.GetResource("admin.marketing.InteractiveForms.Updated"));
                 return continueEditing ? RedirectToAction("Edit", new { id = form.Id }) : RedirectToAction("List");
@@ -188,7 +192,9 @@ namespace Grand.Web.Admin.Controllers
                 return RedirectToAction("List");
 
             await _interactiveFormService.DeleteForm(form);
-            await _customerActivityService.InsertActivity("InteractiveFormDelete", form.Id, _translationService.GetResource("ActivityLog.InteractiveFormDeleted"), form.Name);
+            _ = _customerActivityService.InsertActivity("InteractiveFormDelete", form.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.InteractiveFormDeleted"), form.Name);
 
             Success(_translationService.GetResource("admin.marketing.InteractiveForms.Deleted"));
             return RedirectToAction("List");
@@ -229,7 +235,9 @@ namespace Grand.Web.Admin.Controllers
 
             form.FormAttributes.Remove(form.FormAttributes.FirstOrDefault(x => x.Id == id));
             await _interactiveFormService.UpdateForm(form);
-            await _customerActivityService.InsertActivity("InteractiveFormEdit", form.Id, _translationService.GetResource("ActivityLog.InteractiveFormDeleteAttribute"), form.Name);
+            _ = _customerActivityService.InsertActivity("InteractiveFormEdit", form.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.InteractiveFormDeleteAttribute"), form.Name);
 
             return new JsonResult("");
         }
@@ -263,7 +271,9 @@ namespace Grand.Web.Admin.Controllers
                 form.FormAttributes.Add(attribute);
                 await _interactiveFormService.UpdateForm(form);
 
-                await _customerActivityService.InsertActivity("InteractiveFormEdit", attribute.Id, _translationService.GetResource("ActivityLog.InteractiveFormAddAttribute"), attribute.Name);
+                _ = _customerActivityService.InsertActivity("InteractiveFormEdit", attribute.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.InteractiveFormAddAttribute"), attribute.Name);
 
                 Success(_translationService.GetResource("admin.marketing.InteractiveForms.Attribute.Added"));
 
@@ -311,7 +321,9 @@ namespace Grand.Web.Admin.Controllers
                 {
                     attribute = model.ToEntity(attribute);
                     await _interactiveFormService.UpdateForm(form);
-                    await _customerActivityService.InsertActivity("InteractiveFormEdit", attribute.Id, _translationService.GetResource("ActivityLog.InteractiveFormUpdateAttribute"), attribute.Name);
+                    _ = _customerActivityService.InsertActivity("InteractiveFormEdit", attribute.Id,
+                        _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                        _translationService.GetResource("ActivityLog.InteractiveFormUpdateAttribute"), attribute.Name);
                     Success(_translationService.GetResource("admin.marketing.InteractiveForms.Attribute.Updated"));
                     return continueEditing ? RedirectToAction("EditAttribute", new { formId = form.Id, aid = attribute.Id }) : RedirectToAction("Edit", new { id = form.Id });
                 }
@@ -390,7 +402,9 @@ namespace Grand.Web.Admin.Controllers
                 var vaf = model.ToEntity();
                 attribute.FormAttributeValues.Add(vaf);
                 await _interactiveFormService.UpdateForm(fo);
-                await _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id, _translationService.GetResource("ActivityLog.InteractiveFormAddAttributeValue"), vaf.Name);
+                _ = _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.InteractiveFormAddAttributeValue"), vaf.Name);
 
                 return Content("");
             }
@@ -445,7 +459,9 @@ namespace Grand.Web.Admin.Controllers
             {
                 vaf = model.ToEntity();
                 await _interactiveFormService.UpdateForm(fo);
-                await _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id, _translationService.GetResource("ActivityLog.InteractiveFormUpdateAttributeValue"), vaf.Name);
+                _ = _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id,
+                    _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                    _translationService.GetResource("ActivityLog.InteractiveFormUpdateAttributeValue"), vaf.Name);
                 return Content("");
             }
 
@@ -469,7 +485,9 @@ namespace Grand.Web.Admin.Controllers
 
             attribute.FormAttributeValues.Remove(vaf);
             await _interactiveFormService.UpdateForm(form);
-            await _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id, _translationService.GetResource("ActivityLog.InteractiveFormDeleteAttributeValue"), vaf.Name);
+            _ = _customerActivityService.InsertActivity("InteractiveFormEdit", vaf.Id,
+                _workContext.CurrentCustomer, HttpContext.Connection?.RemoteIpAddress?.ToString(),
+                _translationService.GetResource("ActivityLog.InteractiveFormDeleteAttributeValue"), vaf.Name);
             return new JsonResult("");
         }
 

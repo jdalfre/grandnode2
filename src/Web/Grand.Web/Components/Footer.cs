@@ -1,7 +1,7 @@
-﻿using Grand.Business.Cms.Interfaces;
-using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Security;
-using Grand.Business.Common.Services.Security;
+﻿using Grand.Business.Core.Interfaces.Cms;
+using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Security;
+using Grand.Business.Core.Utilities.Common.Security;
 using Grand.Infrastructure;
 using Grand.Domain.Blogs;
 using Grand.Domain.Catalog;
@@ -14,9 +14,6 @@ using Grand.Domain.Vendors;
 using Grand.Web.Common.Components;
 using Grand.Web.Models.Common;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grand.Web.ViewComponents
 {
@@ -103,7 +100,6 @@ namespace Grand.Web.ViewComponents
                 PinterestLink = _storeInformationSettings.PinterestLink,
                 BlogEnabled = _blogSettings.Enabled,
                 KnowledgebaseEnabled = _knowledgebaseSettings.Enabled,
-                CompareProductsEnabled = _catalogSettings.CompareProductsEnabled,
                 NewsEnabled = _newsSettings.Enabled,
                 RecentlyViewedProductsEnabled = _catalogSettings.RecentlyViewedProductsEnabled,
                 RecommendedProductsEnabled = _catalogSettings.RecommendedProductsEnabled,

@@ -1,9 +1,6 @@
-﻿using Grand.Web.Common.Localization;
-using Grand.Web.Common.Link;
+﻿using Grand.Web.Common.Link;
 using Grand.Infrastructure.ModelBinding;
 using Grand.Infrastructure.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Grand.Web.Common.Models;
 

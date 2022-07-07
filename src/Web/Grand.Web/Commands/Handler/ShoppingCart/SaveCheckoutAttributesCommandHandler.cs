@@ -1,17 +1,12 @@
-﻿using Grand.Business.Checkout.Extensions;
-using Grand.Business.Checkout.Interfaces.CheckoutAttributes;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Checkout.CheckoutAttributes;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Domain.Catalog;
 using Grand.Domain.Common;
 using Grand.Domain.Customers;
 using Grand.Web.Commands.Models.ShoppingCart;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.ShoppingCart
 {
@@ -91,6 +86,7 @@ namespace Grand.Web.Commands.Handler.ShoppingCart
                         break;
                     case AttributeControlType.TextBox:
                     case AttributeControlType.MultilineTextbox:
+                    case AttributeControlType.Datepicker:
                         {
                             request.Form.TryGetValue(controlId, out var ctrlAttributes);
                             if (!string.IsNullOrEmpty(ctrlAttributes))
@@ -98,24 +94,6 @@ namespace Grand.Web.Commands.Handler.ShoppingCart
                                 string enteredText = ctrlAttributes.ToString().Trim();
                                 customAttributes = _checkoutAttributeParser.AddCheckoutAttribute(customAttributes,
                                     attribute, enteredText).ToList();
-                            }
-                        }
-                        break;
-                    case AttributeControlType.Datepicker:
-                        {
-                            request.Form.TryGetValue(controlId + "_day", out var date);
-                            request.Form.TryGetValue(controlId + "_month", out var month);
-                            request.Form.TryGetValue(controlId + "_year", out var year);
-                            DateTime? selectedDate = null;
-                            try
-                            {
-                                selectedDate = new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(date));
-                            }
-                            catch { }
-                            if (selectedDate.HasValue)
-                            {
-                                customAttributes = _checkoutAttributeParser.AddCheckoutAttribute(customAttributes,
-                                    attribute, selectedDate.Value.ToString("D")).ToList();
                             }
                         }
                         break;

@@ -4,7 +4,7 @@ namespace Grand.SharedKernel.Extensions
 {
     public static class CommonPath
     {
-        private static string AppData => "App_Data";
+        public static string AppData => "App_Data";
         /// <summary>
         /// Extra parameter to path
         /// </summary>
@@ -68,6 +68,37 @@ namespace Grand.SharedKernel.Extensions
                 return Path.Combine(BaseDirectory, "Plugins");
             }
         }
+
+        /// <summary>
+        /// Maps a image path.
+        /// </summary>
+        /// <returns>The path.</returns>
+        public static string ImagePath {
+            get {
+                return Path.Combine("assets", "images");
+            }
+        }
+
+        /// <summary>
+        /// Maps a image thumb path.
+        /// </summary>
+        /// <returns>The path.</returns>
+        public static string ImageThumbPath {
+            get {
+                return Path.Combine("assets", "images", "thumbs");
+            }
+        }
+
+        /// <summary>
+        /// Maps a image upload path.
+        /// </summary>
+        /// <returns>The path.</returns>
+        public static string ImageUploadedPath {
+            get {
+                return Path.Combine("assets", "images", "uploaded");
+            }
+        }
+
 
         /// <summary>
         /// Maps a installled plugins path to a physical disk path.

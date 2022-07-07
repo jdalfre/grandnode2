@@ -1,6 +1,6 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Directory;
-using Grand.Business.Customers.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Customers;
 using Grand.Infrastructure;
 using Grand.Domain.Customers;
 using Grand.Domain.Vendors;
@@ -8,9 +8,6 @@ using Grand.Web.Common.Security.Captcha;
 using Grand.Web.Features.Models.Vendors;
 using Grand.Web.Models.Vendors;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Features.Handlers.Vendors
 {
@@ -50,12 +47,14 @@ namespace Grand.Web.Features.Handlers.Vendors
             if (request.Vendor == null)
                 throw new ArgumentNullException(nameof(request.Vendor));
 
-            var model = new VendorReviewsModel();
-            model.VendorId = request.Vendor.Id;
-            model.VendorName = request.Vendor.GetTranslation(x => x.Name, _workContext.WorkingLanguage.Id);
-            model.VendorSeName = request.Vendor.GetSeName(_workContext.WorkingLanguage.Id);
+            var model = new VendorReviewsModel {
+                VendorId = request.Vendor.Id,
+                VendorName = request.Vendor.GetTranslation(x => x.Name, _workContext.WorkingLanguage.Id),
+                VendorSeName = request.Vendor.GetSeName(_workContext.WorkingLanguage.Id)
+            };
 
-            var vendorReviews = await _vendorService.GetAllVendorReviews("", true, null, null, "", request.Vendor.Id);
+            var vendorReviews = await _vendorService.GetAllVendorReviews("", true, null, null, "", request.Vendor.Id, 0, _vendorSettings.NumberOfReview);
+
             foreach (var pr in vendorReviews)
             {
                 var customer = await _customerService.GetCustomerById(pr.CustomerId);

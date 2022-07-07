@@ -1,11 +1,9 @@
-﻿using Grand.Business.Common.Extensions;
-using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Storage.Interfaces;
+﻿using Grand.Business.Core.Extensions;
+using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Storage;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Common;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {
@@ -38,14 +36,17 @@ namespace Grand.Web.Admin.Services
                 PictureUrl = picture != null ? await _pictureService.GetPictureUrl(picture) : null,
                 AltAttribute = picture?.AltAttribute,
                 TitleAttribute = picture?.TitleAttribute,
+                Style = picture?.Style,
+                ExtraField = picture?.ExtraField
             };
 
             foreach (var language in await _languageService.GetAllLanguages(true))
             {
-                var locale = new PictureModel.PictureLocalizedModel();
-                locale.LanguageId = language.Id;
-                locale.AltAttribute = picture.GetTranslation(x => x.AltAttribute, language.Id, false);
-                locale.TitleAttribute = picture.GetTranslation(x => x.TitleAttribute, language.Id, false);
+                var locale = new PictureModel.PictureLocalizedModel {
+                    LanguageId = language.Id,
+                    AltAttribute = picture.GetTranslation(x => x.AltAttribute, language.Id, false),
+                    TitleAttribute = picture.GetTranslation(x => x.TitleAttribute, language.Id, false)
+                };
                 model.Locales.Add(locale);
             }
 
@@ -62,9 +63,11 @@ namespace Grand.Web.Admin.Services
                 throw new ArgumentNullException(nameof(picture));
 
             //Update picture fields
-            await _pictureService.UpdatField(picture, x => x.AltAttribute, model.AltAttribute);
-            await _pictureService.UpdatField(picture, x => x.TitleAttribute, model.TitleAttribute);
-            await _pictureService.UpdatField(picture, x => x.Locales, model.Locales.ToTranslationProperty());
+            await _pictureService.UpdatePictureField(picture, x => x.AltAttribute, model.AltAttribute);
+            await _pictureService.UpdatePictureField(picture, x => x.TitleAttribute, model.TitleAttribute);
+            await _pictureService.UpdatePictureField(picture, x => x.Locales, model.Locales.ToTranslationProperty());
+            await _pictureService.UpdatePictureField(picture, x => x.Style, model.Style);
+            await _pictureService.UpdatePictureField(picture, x => x.ExtraField, model.ExtraField);
         }
     }
 }

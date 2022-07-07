@@ -3,17 +3,16 @@
 @inject IPageHeadBuilder pagebuilder
 @inject IWorkContext workContext
 @{
+    var supportRtl = workContext.WorkingLanguage.Rtl;
+
     if (!Model.PrintMode)
     {
         Layout = "_SingleColumn";
-        <link rel="stylesheet" type="text/css" asp-src="/theme/css/cart/cart.css">
     }
     else
     {
         Layout = "_Print";
     }
-
-    var supportRtl = workContext.WorkingLanguage.Rtl;
 
     //title
     pagebuilder.AddTitleParts(Loc["Title.OrderDetails"]);
@@ -42,7 +41,12 @@
 
             @if (Model.ShowAddOrderNote)
             {
-                <a href="@Url.RouteUrl("AddOrderNote", new { orderId = Model.Id })" class="btn btn-outline-secondary">@Loc["Order.AddOrderNote"]</a>
+                <a @@click="$bvModal.show('ModalAddOrderNote')" class="btn btn-outline-secondary">@Loc["Order.AddOrderNote"]</a>
+
+                var notemodel = new AddOrderNoteModel();
+                notemodel.OrderId = Model.Id;
+
+                <partial name="_AddOrderNote" model="@notemodel"/>
             }
         </div>
     }
@@ -149,7 +153,7 @@
                                     }
                                     @if (Model.BillingAddress.CityEnabled && (Model.BillingAddress.StateProvinceEnabled || Model.BillingAddress.ZipPostalCodeEnabled))
                                     {
-                                        <text>,</text>
+                                        <text>, </text>
                                     }
                                     @if (Model.BillingAddress.StateProvinceEnabled)
                                     {
@@ -157,7 +161,7 @@
                                     }
                                     @if (Model.BillingAddress.ZipPostalCodeEnabled)
                                     {
-                                        @Model.BillingAddress.ZipPostalCode
+                                        <text> </text> @Model.BillingAddress.ZipPostalCode
                                     }
                                 </li>
                             }
@@ -293,7 +297,7 @@
                                             }
                                             @if (Model.ShippingAddress.CityEnabled && (Model.ShippingAddress.StateProvinceEnabled || Model.ShippingAddress.ZipPostalCodeEnabled))
                                             {
-                                                <text>,</text>
+                                                <text>, </text>
                                             }
                                             @if (Model.ShippingAddress.StateProvinceEnabled)
                                             {
@@ -301,7 +305,7 @@
                                             }
                                             @if (Model.ShippingAddress.ZipPostalCodeEnabled)
                                             {
-                                                @Model.ShippingAddress.ZipPostalCode
+                                                <text> </text> @Model.ShippingAddress.ZipPostalCode
                                             }
                                         </li>
                                     }

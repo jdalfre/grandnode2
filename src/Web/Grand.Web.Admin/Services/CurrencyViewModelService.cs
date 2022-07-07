@@ -1,10 +1,8 @@
 ﻿using Grand.Domain.Directory;
-using Grand.Business.Common.Interfaces.Directory;
+using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Web.Admin.Extensions;
 using Grand.Web.Admin.Interfaces;
 using Grand.Web.Admin.Models.Directory;
-using System;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Admin.Services
 {

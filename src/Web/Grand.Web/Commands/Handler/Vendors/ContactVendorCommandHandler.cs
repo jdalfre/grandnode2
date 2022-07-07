@@ -1,13 +1,11 @@
-﻿using Grand.Business.Common.Interfaces.Localization;
-using Grand.Business.Messages.Interfaces;
+﻿using Grand.Business.Core.Interfaces.Common.Localization;
+using Grand.Business.Core.Interfaces.Messages;
 using Grand.Infrastructure;
 using Grand.Domain.Common;
 using Grand.SharedKernel.Extensions;
 using Grand.Web.Commands.Models.Vendors;
 using Grand.Web.Models.Common;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Web.Commands.Handler.Vendors
 {
@@ -34,7 +32,7 @@ namespace Grand.Web.Commands.Handler.Vendors
             var body = FormatText.ConvertText(request.Model.Enquiry);
 
             await _messageProviderService.SendContactVendorMessage(_workContext.CurrentCustomer, request.Store, request.Vendor, _workContext.WorkingLanguage.Id,
-                request.Model.Email.Trim(), request.Model.FullName, subject, body);
+                request.Model.Email.Trim(), request.Model.FullName, subject, body, request.IpAddress);
 
             request.Model.SuccessfullySent = true;
             request.Model.Result = _translationService.GetResource("ContactVendor.YourEnquiryHasBeenSent");

@@ -1,9 +1,7 @@
 ﻿using Grand.Api.DTOs.Catalog;
 using Grand.Api.Extensions;
-using Grand.Business.Catalog.Interfaces.Products;
+using Grand.Business.Core.Interfaces.Catalog.Products;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grand.Api.Commands.Models.Catalog
 {
